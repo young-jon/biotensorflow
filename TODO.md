@@ -2,7 +2,7 @@
 ## Short Term
 
 ### general
-- [x] github tutorials
+- [ ] github tutorials
 - [ ] tensorflow tutorials
 - [ ] read deep learning book
 

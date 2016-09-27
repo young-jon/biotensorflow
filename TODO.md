@@ -5,7 +5,7 @@
 - [ ] github tutorials
 - [ ] tensorflow tutorials
 - [ ] read deep learning book
-	- most important chapters 
+	- most important chapters (assuming you've already read chapters 1-4)
 		- [ ] 5, 6, 7, 8, 11
 	- if time
 		- [ ] 14, 15, 20.1-20.4

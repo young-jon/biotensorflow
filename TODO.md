@@ -5,6 +5,10 @@
 - [ ] github tutorials
 - [ ] tensorflow tutorials
 - [ ] read deep learning book
+	- most important chapters 
+		- [ ] 5, 6, 7, 8, 11
+	- if time
+		- [ ] 14, 15, 20.1-20.4
 
 ### biotensorflow
 - [ ] modify dnn.py to accept user supplied data 
@@ -13,11 +17,15 @@
 	- [ ] update dnn.py to work with any dataset that meets the formatting requirements above
 - [ ] modify dnn.py to save model, hidden layers, train error, test error, etc.
 - [ ] curate list of all activation functions, optimizers, cost functions, and regularizers that can be used (and have been tested) with dnn.py
+- [ ] better understanding of tensorflow cost function api
 - [ ] modify dnn.py to run on gpu
 - [ ] add different types of regularization to dnn.py
 	- [ ] sparse
 	- [ ] dropout
-	- [ ] etc.
+	- [ ] denoising
+	- [ ] batch normalization
+- [ ] add code to dnn.py to decrease learning rate as training progresses (learning rate adaptation)
+- [ ] add momentum to dnn.py
 - [ ] testing (given a random seed, tests for making sure weights/outputs are computed as expected)
 - [ ] visualization 
 	- [ ] as another type of testing to make sure algorithm is working
@@ -32,4 +40,10 @@
 	- [ ] deep autoencoder 
 	- [ ] stacked RBM pretraining (stacked RBM + deep autoencoder = DBN)
 	- [ ] greedy autoencoder pretraining
-	- [ ] semi-supervised 
+	- [ ] semi-supervised/transfer learning
+	- [ ] CNN
+	- [ ] multimodal
+	- [ ] generative
+	- [ ] other
+- [ ] model selection code/training pipeline
+- [ ] feature selection 

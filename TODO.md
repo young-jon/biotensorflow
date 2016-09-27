@@ -18,7 +18,7 @@
 - [ ] **2.** modify dnn.py to save model, hidden layers, train error, test error, etc.
 - [ ] **3.** curate list of all activation functions, optimizers, cost functions, and regularizers that can be used (and have been tested) with dnn.py
 - [ ] **4.** better understanding of tensorflow cost function api
-- [ ] **5.** modify dnn.py to run on gpu
+- [ ] **5.** run dnn.py on gpu
 - [ ] **6.** add different types of regularization to dnn.py
 	- [ ] **6a.** sparse
 	- [ ] **6b.** dropout

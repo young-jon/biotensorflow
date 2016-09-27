@@ -10,7 +10,7 @@
 	- if time
 		- [ ] 14, 15, 20.1-20.4
 
-### biotensorflow
+### biotensorflow (MOST IMPORTANT)
 - [ ] modify dnn.py to accept user supplied data 
 	- [ ] create small prototyping dataset (~500 x 150 (samples x features/expression))
 	- [ ] describe requirements for data (ie., data format, etc.)

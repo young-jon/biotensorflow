@@ -16,9 +16,9 @@
 	- [ ] **1b.** create small *real* valued prototyping dataset similar to above
 	- [ ] **1c.** describe requirements for data (ie., data format, etc.)
 	- [ ] **1d.** update dnn.py to work with any dataset that meets the formatting requirements above
-- [ ] **2.** modify dnn.py to save results
+- [x] **2.** modify dnn.py to save results
 	- [x] **2a.** model 
-	- [ ] **2b.** hidden layers
+	- [x] **2b.** hidden layers
 	- [x] **2b.** train error, test error, etc.
 - [ ] **3.** curate list of all activation functions, optimizers, cost functions, and regularizers that can be used (and have been tested) with dnn.py
 - [ ] **4.** better understanding of tensorflow cost function api

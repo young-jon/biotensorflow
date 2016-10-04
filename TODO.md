@@ -20,8 +20,8 @@
 	- [x] **2a.** model 
 	- [x] **2b.** hidden layers
 	- [x] **2b.** train error, test error, etc.
-- [ ] **3.** curate list of all activation functions, optimizers, cost functions, and regularizers that can be used (and have been tested) with dnn.py
-- [ ] **4.** better understanding of tensorflow cost function api
+- [x] **3.** curate list of all activation functions, optimizers, cost functions, and regularizers that can be used (and have been tested) with dnn.py
+- [x] **4.** better understanding of tensorflow cost function api
 - [ ] **5.** run dnn.py on gpu
 - [ ] **6.** add different types of regularization to dnn.py
 	- [ ] **6a.** sparse

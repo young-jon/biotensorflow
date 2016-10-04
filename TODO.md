@@ -19,7 +19,7 @@
 - [ ] **2.** modify dnn.py to save results
 	- [x] **2a.** model 
 	- [ ] **2b.** hidden layers
-	- [ ] **2b.** train error, test error, etc.
+	- [x] **2b.** train error, test error, etc.
 - [ ] **3.** curate list of all activation functions, optimizers, cost functions, and regularizers that can be used (and have been tested) with dnn.py
 - [ ] **4.** better understanding of tensorflow cost function api
 - [ ] **5.** run dnn.py on gpu
@@ -36,6 +36,7 @@
 		- eg., for autoencoder, images of an input next to an image of the reconstruction
 	- [ ] **10b.** to understand results/effectiveness of training
 		- eg., plot of train and test error as a function of epochs (ie., how train and test error decrease over time)
+- [ ] **11.** TensorBoard
 
 
 ## After short term tasks completed

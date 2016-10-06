@@ -1,3 +1,4 @@
+from __future__ import print_function  ### if using python 2.7
 import tensorflow as tf
 
 
@@ -38,7 +39,14 @@ class CNN:
 
     train_dataset (DataSet): Training data in the form of a DataSet object
 
-    Example configuration:
+
+    Usage:
+
+    from __future__ import print_function  ### if using python 2.7
+    import tensorflow as tf
+    from tensorflow.examples.tutorials.mnist import input_data
+    from cnn import CNN
+
     mnist_config = {
         "structure": ["INPUT:28,28,1",
                       "CONV:5,5,1,32:1",
@@ -47,23 +55,20 @@ class CNN:
                       "MAXPOOL:2,2:2",
                       "FC:1024",
                       "OUTPUT:10"],
-        "input_reshape_function": lambda x: tf.reshape(x, [-1, 28, 28, 1])
+        "input_reshape_function": lambda x: tf.reshape(x, [-1, 28, 28, 1]),
         "activation": tf.nn.relu,
         "optimizer": tf.train.AdamOptimizer,
         "cost_function": tf.nn.softmax_cross_entropy_with_logits,
         "learning_rate": 1e-4,
-        "num_epochs": 5,
+        "num_epochs": 1,
         "batch_size": 100,
         "display_step": 1
     }
 
-    Usage:
-    from tensorflow.examples.tutorials.mnist import input_data
-    from cnn import CNN
-
-    mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
+    mnist = input_data.read_data_sets('MNIST_data', one_hot=True)  ### also saves MNIST data to disk
     mnist_cnn = CNN(mnist_config, mnist.train)
     mnist_cnn.train()
+    print('Final Accuracy: ', mnist_cnn.test(mnist.test.images, mnist.test.labels))
 
     """
     def __init__(self, configuration, train_dataset):
@@ -210,12 +215,17 @@ class CNN:
             if epoch % self.display_step == 0:
                 print("Epoch:", '%04d' % (epoch+1), "cost=", "{:.9f}".format(avg_cost))
 
-    def test(self, test_dataset):
-        """ Evaluates the trained model on a test data set """
+    def test(self, features, labels):
         return self.accuracy.eval(
-            {self.x: test_dataset.features, self.y: test_dataset.labels},
+            {self.x: features, self.y: labels},
             session=self.sess  # Use trained model
         )
+
+    # def test(self, test_dataset):
+    #     return self.accuracy.eval(
+    #         {self.x: test_dataset.features, self.y: test_dataset.labels},
+    #         session=self.sess  # Use trained model
+    #     )
 
     def create_weight_variable(self, shape):
         """ Initalize weights using truncated normal distribution """
@@ -235,6 +245,7 @@ class CNN:
 
     def avg_pool(self, x, ksize, strides):
         # TODO: Implement average pooling
+        pass
 
     def load_configuration(self, config):
         """ Sets configuration variables """

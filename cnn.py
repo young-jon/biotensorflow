@@ -66,9 +66,10 @@ class CNN:
     }
 
     mnist = input_data.read_data_sets('MNIST_data', one_hot=True)  ### also saves MNIST data to disk
+    mnist.test.features = mnist.test.images  ### quick fix to get mnist.test to work with CNN.test
     mnist_cnn = CNN(mnist_config, mnist.train)
     mnist_cnn.train()
-    print('Final Accuracy: ', mnist_cnn.test(mnist.test.images, mnist.test.labels))
+    print('Final Test Accuracy: ', mnist_cnn.test(mnist.test))
 
     """
     def __init__(self, configuration, train_dataset):
@@ -215,17 +216,11 @@ class CNN:
             if epoch % self.display_step == 0:
                 print("Epoch:", '%04d' % (epoch+1), "cost=", "{:.9f}".format(avg_cost))
 
-    def test(self, features, labels):
+    def test(self, test_dataset):
         return self.accuracy.eval(
-            {self.x: features, self.y: labels},
+            {self.x: test_dataset.features, self.y: test_dataset.labels},
             session=self.sess  # Use trained model
         )
-
-    # def test(self, test_dataset):
-    #     return self.accuracy.eval(
-    #         {self.x: test_dataset.features, self.y: test_dataset.labels},
-    #         session=self.sess  # Use trained model
-    #     )
 
     def create_weight_variable(self, shape):
         """ Initalize weights using truncated normal distribution """

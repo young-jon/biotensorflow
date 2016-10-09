@@ -52,3 +52,4 @@
 	- [ ] other
 - [ ] model selection code/training pipeline
 - [ ] feature selection 
+- [ ] which high-level api: Keras, TFLearn, TF-Slim, tf.contrib.learn?

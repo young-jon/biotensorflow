@@ -1,11 +1,32 @@
 import numpy as np
 
 class DataSet:
-    def __init__(self, features, labels, flatten=True, to_one_hot=False):
-        """
-        Construct a DataSet given NumPy arrays of features and labels
-        """
+    """
+    Defines a ML DataSet
 
+    Arguments:
+    features (numpy.array): NumPy array of 'm' example features
+    labels (numpy.array): NumPy array of 'm' example labels
+    flatten (bool): Whether or not to flatten features into [m x n] array
+    to_one_hot (bool): Whether or not to convert labels into array of one-hot vectors
+
+    Usage:
+    import numpy as np
+
+    # Create random array of 10, 28x28x1 "images"
+    images = np.rand(10, 28, 28, 1)
+
+    # Create labels array of image classes (0 = car, 1 = person, 2 = tree)
+    labels = np.array([0, 1, 2, 1, 2, 1, 0, 0, 0, 1])
+
+    # Create data set of images and convert image labels to one-hot vectors
+    image_dataset = DataSet(features, labels, to_one_hot=True)
+
+    # Get next batch of 5 images
+    (batch_features, batch_labels) = image_dataset.next_batch(5)
+
+    """
+    def __init__(self, features, labels, flatten=False, to_one_hot=False):
         assert(features.shape[0] == labels.shape[0])
         self._features = features if not flatten else features.reshape((features.shape[0], -1), order="F")
         self._labels = labels if not to_one_hot else self.to_one_hot(np.squeeze(labels).astype(int))

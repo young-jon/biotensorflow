@@ -2,6 +2,11 @@ from __future__ import print_function  ### if using python 2.7
 import tensorflow as tf
 
 
+# TODO: Allow explicit definition of activation function for each layer (including output layer)
+# TODO: Add dropout functionality
+# TODO: Regularization
+# TODO: Add more evaluation metrics
+# TODO: Implement tf.Saver functionality
 class CNN:
     """
     Implements a Convolutional Neural Network in TensorFlow
@@ -25,14 +30,10 @@ class CNN:
             "FC:n" - Fully-connected layer with n hidden neurons
             "OUTPUT:n" - Output layer of size n
 
-        input_reshape_function
-            - User-defined function that reshapes
-              flattened input into image-form
-
-        activation - Activation function of neurons in network
+        activation - Activation function of neurons (except output layer)
+                     in network
         cost_function - Cost function of CNN
-        optimizer - Optimizer of cost funnction
-        learning_rate - Learning rate of optimizer
+        optimizer - Initalized TF optimizer
         num_epochs - Number of epochs to run
         batch_size - Size of training batches
         display_step - When to display logs per epoch step
@@ -45,7 +46,9 @@ class CNN:
     from __future__ import print_function  ### if using python 2.7
     import tensorflow as tf
     from tensorflow.examples.tutorials.mnist import input_data
+
     from cnn import CNN
+    from dataset import DataSet
 
     mnist_config = {
         "structure": ["INPUT:28,28,1",
@@ -55,9 +58,8 @@ class CNN:
                       "MAXPOOL:2,2:2",
                       "FC:1024",
                       "OUTPUT:10"],
-        "input_reshape_function": lambda x: tf.reshape(x, [-1, 28, 28, 1]),
         "activation": tf.nn.relu,
-        "optimizer": tf.train.AdamOptimizer,
+        "optimizer": tf.train.AdamOptimizer(learning_rate=1e-4),
         "cost_function": tf.nn.softmax_cross_entropy_with_logits,
         "learning_rate": 1e-4,
         "num_epochs": 1,
@@ -65,11 +67,12 @@ class CNN:
         "display_step": 1
     }
 
-    mnist = input_data.read_data_sets('MNIST_data', one_hot=True)  ### also saves MNIST data to disk
-    mnist.test.features = mnist.test.images  ### quick fix to get mnist.test to work with CNN.test
-    mnist_cnn = CNN(mnist_config, mnist.train)
+    mnist = input_data.read_data_sets('MNIST_data', one_hot=True) ### Also saves MNIST data to disk
+    mnist_train_dataset = DataSet(mnist.train.images.reshape((-1, 28, 28, 1)), mnist.train.labels)
+    mnist_test_dataset = DataSet(mnist.test.images.reshape((-1, 28, 28, 1)), mnist.test.labels)
+    mnist_cnn = CNN(mnist_config, mnist_train_dataset)
     mnist_cnn.train()
-    print('Final Test Accuracy: ', mnist_cnn.test(mnist.test))
+    print('Final Test Accuracy: ', mnist_cnn.test(mnist_test_dataset))
 
     """
     def __init__(self, configuration, train_dataset):
@@ -81,10 +84,7 @@ class CNN:
         (input_height, input_width, input_depth) = tuple(map(int, input_layer.split(":")[1].split(",")))
 
         # Setup input
-        self.x = tf.placeholder(tf.float32, shape=[None, input_height * input_width * input_depth])
-
-        # Reshape flat input into image based on user-defined reshape func.
-        self.x_image = self.input_reshape_function(self.x)
+        self.x = tf.placeholder(tf.float32, shape=[None, input_height, input_width, input_depth])
 
         output_layer = self.structure[-1]
         output_layer_size = int(output_layer.split(":")[1])
@@ -97,7 +97,9 @@ class CNN:
         self.hidden_layers = []
 
         for index, layer in enumerate(hidden_layer_structure):
+            # Debugging
             print(layer)
+
             if "CONV" in layer:
                 (_, filter_dim, stride) = layer.split(":")
                 stride = int(stride)
@@ -112,7 +114,7 @@ class CNN:
                 # Check if the conv layer is the first hidden layer
                 if index == 0:
                     self.hidden_layers.append(self.activation(
-                        self.conv2d(self.x_image, weights, [1, stride, stride, 1]) + biases))
+                        self.conv2d(self.x, weights, [1, stride, stride, 1]) + biases))
                 else:
                     self.hidden_layers.append(self.activation(
                         self.conv2d(self.hidden_layers[index-1], weights, [1, stride, stride, 1]) + biases))
@@ -133,22 +135,14 @@ class CNN:
                 num_units = int(layer.split(":")[1])
 
                 # Check if FC layer is the first layer after the input layer
-                if index == 0:
-                    prev_layer_dims = self.x_image.get_shape().dims
-                else:
-                    prev_layer_dims = self.hidden_layers[index - 1] \
-                                        .get_shape().dims
+                prev_layer = self.x if index == 0 else self.hidden_layers[index - 1]
 
-                if len(prev_layer_dims) == 4:
-                    (_, height, width, depth) = prev_layer_dims
-                    prev_layer_size = int(height) * int(width) * int(depth)
+                (_, height, width, depth) = prev_layer.get_shape().dims
+                prev_layer_size = int(height) * int(width) * int(depth)
 
-                    # Flatten previous layer
-                    prev_layer = tf.reshape(self.hidden_layers[index - 1],
-                                            [-1, prev_layer_size])
-                elif len(prev_layer_dims) == 2:
-                    (_, prev_layer_size) = prev_layer_dims
-                    prev_layer = self.hidden_layers[index - 1]
+                # Flatten previous layer
+                prev_layer = tf.reshape(self.hidden_layers[index - 1],
+                                        [-1, prev_layer_size])
 
                 weights = self.create_weight_variable(
                     [prev_layer_size, num_units])
@@ -161,28 +155,49 @@ class CNN:
                     self.activation(tf.matmul(prev_layer, weights) + biases)
                 )
 
+        # Get last hidden layer of network
         last_hidden_layer = self.hidden_layers[-1]
-        # Assuming the last hidden layer is fully-connected
-        (_, last_hidden_layer_size) = last_hidden_layer.get_shape().dims
-        last_hidden_layer_size = int(last_hidden_layer_size)
 
+        # Get dimensions of last hidden layer
+        last_hidden_layer_dims = last_hidden_layer.get_shape().dims
+
+        # Check if last hidden layer is not flat
+        if len(last_hidden_layer_dims) == 4:
+            (_, height, width, depth) = last_hidden_layer_dims
+            last_hidden_layer_size = int(height) * int(width) * int(depth)
+
+            # Flatten last hidden layer
+            last_hidden_layer = tf.reshape(last_hidden_layer,
+                                           [-1, last_hidden_layer_size])
+        elif len(last_hidden_layer_dims) == 2:
+            (_, last_hidden_layer_size) = last_hidden_layer_dims
+            last_hidden_layer_size = int(last_hidden_layer_size)
+
+        # Create output layer weights and biases
         output_layer_weights = self.create_weight_variable([last_hidden_layer_size, output_layer_size])
         output_layer_biases = self.create_bias_variable([output_layer_size])
 
+        # Linear transformation of last hidden layer
+        self.output = tf.matmul(last_hidden_layer, output_layer_weights) + output_layer_biases
+
         # Output prediction of model
-        self.y_model = tf.matmul(last_hidden_layer, output_layer_weights) + output_layer_biases
+        # See todo about activation function customization
+        self.y_pred = tf.nn.softmax(self.output)
 
         # Determine cost of model
-        self.cost = tf.reduce_mean(self.cost_function(self.y_model, self.y))
+        self.cost = tf.reduce_mean(self.cost_function(self.output, self.y))
 
         # Define training step
-        self.train_step = self.optimizer(learning_rate=self.learning_rate).minimize(self.cost)
+        self.train_step = self.optimizer.minimize(self.cost)
 
         # Determine correct predictions
-        self.correct_prediction = tf.equal(tf.argmax(self.y_model, 1), tf.argmax(self.y, 1))
+        correct_prediction = tf.equal(
+            tf.cast(tf.argmax(self.y_pred, 1), tf.float32),
+            tf.cast(tf.argmax(self.y, 1), tf.float32)
+        )
 
         # Define accuracy measure
-        self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction, tf.float32))
+        self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
     def train(self):
         """ Handles CNN training """
@@ -245,11 +260,9 @@ class CNN:
     def load_configuration(self, config):
         """ Sets configuration variables """
         self.structure = config["structure"]
-        self.input_reshape_function = config["input_reshape_function"]
         self.cost_function = config["cost_function"]
         self.activation = config["activation"]
         self.optimizer = config["optimizer"]
-        self.learning_rate = config["learning_rate"]
 
         self.num_epochs = config["num_epochs"]
         self.display_step = config["display_step"]

@@ -41,12 +41,12 @@
 
 ## After short term tasks completed
 - algorithms to write:
-	- [ ] deep neural network
-	- [ ] deep autoencoder 
+	- [x] deep neural network
+	- [x] deep autoencoder 
 	- [ ] stacked RBM pretraining (stacked RBM + deep autoencoder = DBN)
 	- [ ] greedy autoencoder pretraining
 	- [ ] semi-supervised/transfer learning
-	- [ ] CNN
+	- [x] CNN
 	- [ ] multimodal
 	- [ ] generative
 	- [ ] other

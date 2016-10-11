@@ -31,6 +31,8 @@
 - [ ] **7.** add code to dnn.py to decrease learning rate as training progresses (learning rate adaptation)
 - [ ] **8.** add momentum to dnn.py
 - [ ] **9.** testing (given a random seed, tests for making sure weights/outputs are computed as expected)
+	- [ ] **9a.** figure out how to set random seed
+	- [ ] **9b.** create testing function
 - [ ] **10.** visualization 
 	- [ ] **10a.** as another type of testing to make sure algorithm is working
 		- eg., for autoencoder, images of an input next to an image of the reconstruction

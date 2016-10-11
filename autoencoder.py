@@ -1,19 +1,21 @@
 '''
-A Deep Neural Network (Multilayer Perceptron) implementation using the 
-TensorFlow library. This implementation currently uses the MNIST dataset 
-and will need to be modified for other datasets.
+A Deep Autoencoder implementation using the TensorFlow library. This 
+implementation uses the MNIST dataset and will need to be modified for other 
+datasets.
 '''
 
 # TODO:  better docstring---description of parameters
-# TODO:  maybe abstract code to a DNN class
+# TODO:  maybe abstract code to an Autoencoder class...maybe
 # TODO:  regularization
 # TODO:  testing
 
 
 import time
 import csv
-import pandas as pd
 import tensorflow as tf
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
 from __future__ import division, print_function, absolute_import
 
 # Import MNIST data
@@ -24,26 +26,33 @@ mnist = input_data.read_data_sets("/tmp/data/", one_hot=True)
 ### SETUP NEURAL NETWORK HYPERPARAMETERS
 output_folder_path = "/Users/jon/Output/biotensorflow/"
 data=mnist
-hidden_layers=[200,100]
-activation=tf.nn.relu
-cost_function=tf.nn.softmax_cross_entropy_with_logits
-optimizer=tf.train.AdamOptimizer
+encoder_hidden_layers=[512,256]
+activation=tf.nn.sigmoid
+cost_function=tf.nn.sigmoid_cross_entropy_with_logits
+optimizer=tf.train.RMSPropOptimizer
 regularizer=None 
-learning_rate=0.001
+learning_rate=0.01
 training_epochs=10
-batch_size=100 
+batch_size=256 
 display_step=1
+examples_to_show=10
+output_layer_activation=tf.nn.sigmoid  ### for generating images of the 
+# reconstructions only---should match activation used in cost_function. use 
+# tf.identity to output affine transformation without an activation function. 
 
     
-n_input = 784 # calculute this from input x
-n_classes = 10 # calculate this from y
+n_input = 784 # todo:  calculute this from input x
 
 # tf Graph input
 x = tf.placeholder("float", [None, n_input])
-y = tf.placeholder("float", [None, n_classes])
+
+# create a list of the sizes of all hidden layers (encoder and decoder)
+hidden_layers = encoder_hidden_layers[:]
+for h in reversed(encoder_hidden_layers[:-1]):
+    hidden_layers.append(h)
 
 # Store layer weights & biases (initialized using random_normal)
-all_layers = [n_input] + hidden_layers + [n_classes]
+all_layers = [n_input] + hidden_layers + [n_input]
 weights=[]
 biases=[]
 for i in range(len(all_layers)-1):
@@ -61,17 +70,24 @@ for j in range(len(hidden_layers))[1:]:
 model.append(tf.add(tf.matmul(model[j], weights[j+1]), biases[j+1])) 
 
 # Construct model
-logits = model[-1]  ### output layer logits
+reconstruction_logits = model[-1]   #output layer i.e., reconstructions
 
-### NOTES ### 
-# the output of tf.nn.softmax_cross_entropy_with_logits(logits, y) is an array of the 
-# size of the minibatch (256). each entry in the array is the cross-entropy (scalar value) 
-# for the corresponding image. tf.reduce_mean calculates the mean of this array. Therefore, 
-# the cost variable below (and the cost calculated by sess.run is a scalar value), i.e., the 
-# average cost for a minibatch). see tf.nn.softmax_cross_entropy_with_logits??
+### NOTES ###
+# the output of tf.nn.sigmoid_cross_entropy_with_logits(logits, y) is a 2D matrix (256,784) 
+# of size (minibatch rows, # of logits). each entry in the matrix is the cross-entropy 
+# (scalar value) for a single example for one of the 784 outputs. each row represents 784 
+# cross-entropy values for a single example. tf.reduce_mean calculates the mean of this array 
+# along all dimensions (by default), meaning it reduces a matrix of values to a single scalar 
+# (or in the case of softmax_cross_entropy_with_logits, reduces an array to a single scalar).
+# Therefore, the cost variable below is a scalar value. (the average cost for a minibatch
+# or the average cost across of 256x784 cross-entropy error values). 
+# see tf.nn.sigmoid_cross_entropy_with_logits??
 
 # Define cost (objective function) and optimizer
-cost = tf.reduce_mean(cost_function(logits, y))
+cost = tf.reduce_mean(cost_function(reconstruction_logits, x))
+# MSE (below) seems to give worse results than cross entropy
+# cost = tf.reduce_mean(tf.pow(x - tf.nn.sigmoid(reconstruction_logits), 2))
+
 train_step = optimizer(learning_rate=learning_rate).minimize(cost)
 
 # initialize containers for writing results to file
@@ -97,8 +113,8 @@ with tf.Session() as sess:
         for i in range(total_batch):
             batch_x, batch_y = data.train.next_batch(batch_size)
             # Run optimization op (backprop) and cost op (to get loss value)
-            _, c = sess.run([train_step, cost], feed_dict={x: batch_x, y: batch_y})
-    
+            _, c = sess.run([train_step, cost], feed_dict={x: batch_x})
+
             # Collect cost for each batch
             total_cost += c
 
@@ -106,13 +122,13 @@ with tf.Session() as sess:
         avg_cost = total_cost/total_batch
 
         #compute test set average cost for each epoch given current state of weights
-        test_avg_cost = cost.eval({x: data.test.images, y: data.test.labels})
+        test_avg_cost = cost.eval({x: data.test.images})
 
         # Display logs per epoch step
         if epoch % display_step == 0:
-            print("Epoch:", '%04d' % (epoch+1), "cost=", \
-                "{:.9f}".format(avg_cost), "test cost=", \
-                "{:.9f}".format(test_avg_cost))
+            print("Epoch:", '%04d' % (epoch+1), 
+                "cost=", "{:.9f}".format(avg_cost), 
+                "test cost=", "{:.9f}".format(test_avg_cost))
 
         #collect costs to save to file
         train_cost.append(avg_cost)
@@ -120,7 +136,7 @@ with tf.Session() as sess:
 
     print("Optimization Finished!")
 
-    ### SAVE .csv files of error measures
+    ### SAVE .csv files of costs
     # write test_cost to its own separate file
     name='test_cost_'
     file_path = output_folder_path + name + time.strftime("%m%d%Y_%H;%M") + '.csv'
@@ -136,47 +152,26 @@ with tf.Session() as sess:
     file_path = output_folder_path + name + time.strftime("%m%d%Y_%H;%M") + '.csv'
     df_to_disk.to_csv(file_path)
 
-    ### TEST MODEL
-    correct_prediction = tf.equal(tf.argmax(logits, 1), tf.argmax(y, 1))
-    # Calculate accuracy
-    accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
-    print("Accuracy:", accuracy.eval({x: data.test.images, y: data.test.labels}))
-
     ### SAVE MODEL WEIGHTS TO DISK
     save_path = saver.save(sess, output_folder_path + 'model.ckpt')
     print("Model saved in file: %s" % save_path)
 
+    ### GENERATE FIGURE OF RECONSTRUCTIONS
+    encode_decode = sess.run(
+        output_layer_activation(reconstruction_logits), 
+        feed_dict={x: mnist.test.images[:examples_to_show]}
+        )
+    # Compare original images with their reconstructions
+    f, a = plt.subplots(2, 10, figsize=(10, 2))
+    for i in range(examples_to_show):
+        a[0][i].imshow(np.reshape(mnist.test.images[i], (28, 28)))
+        a[1][i].imshow(np.reshape(encode_decode[i], (28, 28)))
+    f.show()
+    plt.draw()
+    plt.waitforbuttonpress()
 
 
-
-### INTERACTIVE SESSION FOR LOADING SAVED MODEL AND CALCULATING HIDDEN LAYER VALUES
-#load saved model
-sess = tf.InteractiveSession()
-saver = tf.train.Saver()
-saver.restore(sess, output_folder_path+'model.ckpt') ### restores previous session with stored state of all variables
-print("Model restored from file: %s" % output_folder_path)
-# print 1st layer weights
-w1=weights[0].eval()
-print(w1)
-
-# get hidden layer values using test set 
-h1 = model[0].eval({x: data.test.images})
-h2 = model[1].eval({x: data.test.images})
-# save hidden layer values
-import numpy as np
-np.savetxt(output_folder_path + 'h1_test.csv', h1, delimiter=",")  ### np.loadtxt('foo.csv', delimiter=",")
-np.savetxt(output_folder_path + 'h2_test.csv', h2, delimiter=",")  ### np.loadtxt('foo.csv', delimiter=",")
-
-#first row 
-h1[0,:]
-#first column 
-h1[:,0]
-#first 3 column values for first 3 rows
-h1[0:3,0:3]
-
-sess.close()
-
-
+    ### See dnn.py for how to load saved model in an interactive session
 
 
 

@@ -14,7 +14,7 @@ class DataSet:
     import numpy as np
 
     # Create random array of 10, 28x28x1 "images"
-    images = np.rand(10, 28, 28, 1)
+    features = np.random.rand(10, 28, 28, 1)
 
     # Create labels array of image classes (0 = car, 1 = person, 2 = tree)
     labels = np.array([0, 1, 2, 1, 2, 1, 0, 0, 0, 1])

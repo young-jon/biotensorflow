@@ -12,7 +12,7 @@
 
 ### biotensorflow (MOST IMPORTANT)
 - [ ] **1.** modify dnn.py to accept user supplied data 
-	- [ ] **1a.** create small *binary* valued prototyping dataset (~500 x 150 (samples x features/expression))
+	- [ ] **1a.** create small *binary* valued prototyping dataset (~5000 x 500 (samples x features))
 	- [ ] **1b.** create small *real* valued prototyping dataset similar to above
 	- [ ] **1c.** describe requirements for data (ie., data format, etc.)
 	- [ ] **1d.** update dnn.py to work with any dataset that meets the formatting requirements above

@@ -2,7 +2,7 @@
 ## Short Term
 
 ### general
-- [ ] github tutorials
+- [x] github tutorials
 - [ ] tensorflow tutorials
 - [ ] read deep learning book
 	- most important chapters (assuming you've already read chapters 1-4)
@@ -11,7 +11,7 @@
 		- [ ] 14, 15, 20.1-20.4
 
 ### biotensorflow (MOST IMPORTANT)
-- [ ] **1.** modify dnn.py to accept user supplied data 
+- [ ] **1.** *(@lujia)*  modify dnn.py to accept user supplied data
 	- [ ] **1a.** create small *binary* valued prototyping dataset (~5000 x 500 (samples x features))
 	- [ ] **1b.** create small *real* valued prototyping dataset similar to above
 	- [ ] **1c.** describe requirements for data (ie., data format, etc.)
@@ -22,7 +22,7 @@
 	- [x] **2b.** train error, test error, etc.
 - [x] **3.** curate list of all activation functions, optimizers, cost functions, and regularizers that can be used (and have been tested) with dnn.py
 - [x] **4.** better understanding of tensorflow cost function api
-- [ ] **5.** run dnn.py on gpu
+- [ ] **5.** (*@mike*) run dnn.py on gpu
 - [ ] **6.** add different types of regularization to dnn.py
 	- [ ] **6a.** sparse
 	- [ ] **6b.** dropout
@@ -31,7 +31,7 @@
 - [ ] **7.** add code to dnn.py to decrease learning rate as training progresses (learning rate adaptation)
 - [ ] **8.** add momentum to dnn.py
 - [ ] **9.** testing (given a random seed, tests for making sure weights/outputs are computed as expected)
-	- [ ] **9a.** figure out how to set random seed
+	- [ ] **9a.** (*@mike*) figure out how to set random seed
 	- [ ] **9b.** create testing function
 - [ ] **10.** visualization 
 	- [ ] **10a.** as another type of testing to make sure algorithm is working
@@ -45,8 +45,8 @@
 - algorithms to write:
 	- [x] deep neural network
 	- [x] deep autoencoder 
-	- [ ] stacked RBM pretraining (stacked RBM + deep autoencoder = DBN)
-	- [ ] greedy autoencoder pretraining
+	- [ ] stacked RBM pretraining (stacked RBM + deep autoencoder = DBN) *@jon*
+	- [ ] greedy autoencoder pretraining *@jon*
 	- [ ] semi-supervised/transfer learning
 	- [x] CNN
 	- [ ] multimodal

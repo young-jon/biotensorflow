@@ -67,7 +67,7 @@ model.append(activation(tf.add(tf.matmul(x, weights[0]), biases[0])))
 for j in range(len(hidden_layers))[1:]:
     model.append(activation(tf.add(tf.matmul(model[j-1], weights[j]), biases[j])))
 #create output layer
-model.append(tf.add(tf.matmul(model[j], weights[j+1]), biases[j+1])) 
+model.append(tf.add(tf.matmul(model[-1], weights[-1]), biases[-1])) 
 
 # Construct model
 reconstruction_logits = model[-1]   #output layer i.e., reconstructions
@@ -121,7 +121,7 @@ with tf.Session() as sess:
         # Compute average loss for each epoch
         avg_cost = total_cost/total_batch
 
-        #compute test set average cost for each epoch given current state of weights
+        # Compute test set average cost for each epoch given current state of weights
         test_avg_cost = cost.eval({x: data.test.images})
 
         # Display logs per epoch step
@@ -137,17 +137,17 @@ with tf.Session() as sess:
     print("Optimization Finished!")
 
     ### SAVE .csv files of costs
-    # write test_cost to its own separate file
+    ### write test_cost to its own separate file
     name='test_cost_'
     file_path = output_folder_path + name + time.strftime("%m%d%Y_%H;%M") + '.csv'
     with open(file_path, 'a') as f:
         writer=csv.writer(f)
         writer.writerow(test_cost)
-    # all error measures in one file
+    ### all error measures in one file
     df_to_disk = pd.DataFrame([train_cost, test_cost],
                                 index=[[hidden_layers,learning_rate,training_epochs,batch_size], ''])
     df_to_disk['error_type'] = ['train_cost', 'test_cost']
-    # create file name and save as .csv
+    ### create file name and save as .csv
     name = 'all_errors_'
     file_path = output_folder_path + name + time.strftime("%m%d%Y_%H;%M") + '.csv'
     df_to_disk.to_csv(file_path)
@@ -161,7 +161,7 @@ with tf.Session() as sess:
         output_layer_activation(reconstruction_logits), 
         feed_dict={x: mnist.test.images[:examples_to_show]}
         )
-    # Compare original images with their reconstructions
+    ### Compare original images with their reconstructions
     f, a = plt.subplots(2, 10, figsize=(10, 2))
     for i in range(examples_to_show):
         a[0][i].imshow(np.reshape(mnist.test.images[i], (28, 28)))

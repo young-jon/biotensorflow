@@ -6,7 +6,7 @@ Greedy layer-wise autoencoder pretrainig implementation using the TensorFlow lib
 implementation uses the MNIST dataset and will need to be modified for other 
 datasets.
 '''
-
+# TESTING PUSH
 # TODO:  better docstring---description of parameters
 # TODO:  maybe abstract code to an Autoencoder class...maybe
 # TODO:  regularization

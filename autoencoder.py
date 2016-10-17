@@ -26,6 +26,7 @@ mnist = input_data.read_data_sets("/tmp/data/", one_hot=True)
 ### SETUP NEURAL NETWORK HYPERPARAMETERS
 output_folder_path = "/Users/jon/Output/biotensorflow/"
 data=mnist
+##data = data_set
 encoder_hidden_layers=[512,256]
 activation=tf.nn.sigmoid
 cost_function=tf.nn.sigmoid_cross_entropy_with_logits

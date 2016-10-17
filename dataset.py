@@ -1,4 +1,75 @@
 import numpy as np
+from numpy import genfromtxt
+
+##1a and 1b. randomly create a binary/real valued numpy array (~5000*500(samples*features))
+##Choose one of the followings based on your needs
+##Create binary numpy array
+data_features = random_create_data_features("binary",5000, 500)
+"""
+##Create real numpy array
+data_features = random_create_data_features("real", 5000, 500)
+##Import data from your file. Please change the file_path based on your own. The file should only contain the numeric data (either binary or real valued number).
+file_path_local = '/Users/luc17/Desktop/PDX project/pdx_bimodal_binary_feature_selected.csv'
+data_features = random_create_data_features("self_defined",file_path=file_path_local)
+"""
+
+##Randomly create a corresponding hot vector numpy array(~5000*10(samples*labels)) 
+
+data_labels = np.random.randint(1, size=(data_features.shape[0], 10))
+random_index = np.random.randint(10, size=(1,data_features.shape[0]))
+data_labels[np.arange(data_features.shape[0]),random_index]=1
+
+##Separate the data into train, test and validation
+##Set the percentage of train, test and validation (train:70%, test:20%, validation:10%)
+
+num_sample_total = data_features.shape[0]
+train_sample_rate = 0.7
+test_sample_rate = 0.2
+validation_sample_rate = 0.1
+random_index = np.random.choice(data_features.shape[0], data_features.shape[0], replace=False)
+
+##Create index for train, test and validation separately
+
+train_index = random_index[0:int(num_sample_total*train_sample_rate)]
+test_index = random_index[int(num_sample_total*train_sample_rate):int(num_sample_total*train_sample_rate)+int(num_sample_total*test_sample_rate)]
+validation_index = random_index[int(num_sample_total*train_sample_rate)+int(num_sample_total*test_sample_rate):]
+
+## Separate data features into train, test and validation according to the index
+
+train_features = data_features[train_index,:]
+test_features = data_features[test_index,:]
+validation_features = data_features[validation_index,:]
+
+## Separate data labels into train, test adn validation according to the index
+
+train_labels = data_labels[train_index,:]
+test_labels = data_labels[test_index,:]
+validation_labels = data_labels[validation_index,:]
+
+##Create a new dataset to save the train, test and validation data together
+data_set = DataSets()
+
+###save training data
+data_set.train = DataSet(train_features, train_labels,to_one_hot=False)
+###save test data
+data_set.test = DataSet(test_features, test_labels,to_one_hot=False)
+###save validation data
+data_set.validation = DataSet(validation_features, validation_labels,to_one_hot=False)
+
+##use data_set as input for dnn.py, the only code needs to be changed in the dnn.py is data = data_set
+
+
+##define a function to create data randomly or import from a file
+def random_create_data_features(type,num_samples="",num_features="",file_path=""):
+    if type == "binary":
+        data_feature = np.random.randint(2, size=(num_samples, num_features))
+    if type == "real":
+        data_feature = np.random.uniform(0,1,size = (num_samples,num_features))
+    if type == "self_defined":
+        ##read from local .csv file
+        data_feature = genfromtxt(file_path, delimiter=',')
+    return data_feature
+
 
 class DataSet:
     """
@@ -88,3 +159,7 @@ class DataSet:
 
         end = self._index_in_epoch
         return (self._features[start:end], self._labels[start:end])
+    
+class DataSets(DataSet):
+    def __init__(self):
+        pass

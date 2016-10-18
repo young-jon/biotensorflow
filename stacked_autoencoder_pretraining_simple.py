@@ -1,32 +1,29 @@
-#1. separate graph for each layer. save previous layer output as numpy.array to pass forward
-#2. cmgreen
-
-'''
-Greedy layer-wise autoencoder pretrainig implementation using the TensorFlow library. This 
-implementation uses the MNIST dataset and will need to be modified for other 
-datasets.
-'''
-# TESTING PUSH
-# TODO:  better docstring---description of parameters
-# TODO:  maybe abstract code to an Autoencoder class...maybe
-# TODO:  regularization
-# TODO:  testing
-
-
+from __future__ import division, print_function, absolute_import
 import time
 import csv
 import tensorflow as tf
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-from __future__ import division, print_function, absolute_import
 from dataset import DataSet
+from tensorflow.examples.tutorials.mnist import input_data
+
+'''
+Greedy layer-wise autoencoder pretrainig implementation using the TensorFlow library. This 
+implementation uses the MNIST dataset and will need to be modified for other 
+datasets.
+'''
+
+# TODO:  better docstring---description of parameters
+# TODO:  maybe abstract code to an Autoencoder class...maybe
+# TODO:  regularization
+# TODO:  testing
+#1. separate graph for each layer. save previous layer output as numpy.array to pass forward
+#2. cmgreen
+
 
 # Import MNIST data
-from tensorflow.examples.tutorials.mnist import input_data
 mnist = input_data.read_data_sets("/tmp/data/", one_hot=True)
-
-
 
 ### SETUP NEURAL NETWORK HYPERPARAMETERS
 output_folder_path = "/Users/jdy10/Output/biotensorflow/"
@@ -39,7 +36,7 @@ cost_function=tf.nn.sigmoid_cross_entropy_with_logits
 optimizer=tf.train.RMSPropOptimizer
 regularizer=None 
 learning_rate=0.01
-training_epochs=10
+training_epochs=5
 batch_size=256 
 display_step=1
 examples_to_show=10
@@ -54,76 +51,77 @@ ENCODER_BIASES = []
 DECODER_BIASES = []
 
 for layer in hidden_layers:
-	n_input = data.features.shape[1] # todo:  calculute this from input x
+    print('Pretraining', layer, 'layer...')
+    n_input = data.features.shape[1] # todo:  calculute this from input x
 
-	# tf Graph input
-	x = tf.placeholder("float", [None, n_input])
+    # tf Graph input
+    x = tf.placeholder("float", [None, n_input])
 
-	# Store layer weights & biases (initialized using random_normal)
-	w1 = tf.Variable(tf.random_normal([n_input, layer]))
-	b1 = tf.Variable(tf.random_normal([layer]))
-	w2 = tf.Variable(tf.random_normal([layer, n_input]))
-	b2 = tf.Variable(tf.random_normal([n_input]))
+    # Store layer weights & biases (initialized using random_normal)
+    w1 = tf.Variable(tf.random_normal([n_input, layer]))
+    b1 = tf.Variable(tf.random_normal([layer]))
+    w2 = tf.Variable(tf.random_normal([layer, n_input]))
+    b2 = tf.Variable(tf.random_normal([n_input]))
 
-	# CREATE MODEL
-	model = []
-	model.append(activation(tf.add(tf.matmul(x, w1), b1)))
-	model.append(tf.add(tf.matmul(model[0], w2), b2))
+    # CREATE MODEL
+    model = []
+    model.append(activation(tf.add(tf.matmul(x, w1), b1)))
+    model.append(tf.add(tf.matmul(model[0], w2), b2))
 
-	# Construct model
-	reconstruction_logits = model[-1]
+    # Construct model
+    reconstruction_logits = model[-1]
 
-	# Define cost (objective function) and optimizer
-	cost = tf.reduce_mean(cost_function(reconstruction_logits, x))
-	train_step = optimizer(learning_rate=learning_rate).minimize(cost)
+    # Define cost (objective function) and optimizer
+    cost = tf.reduce_mean(cost_function(reconstruction_logits, x))
+    train_step = optimizer(learning_rate=learning_rate).minimize(cost)
 
-	# Initializing the variables
-	init = tf.initialize_all_variables()
+    # Initializing the variables
+    init = tf.initialize_all_variables()
 
-	saver = tf.train.Saver()
+    saver = tf.train.Saver()
 
-	# Launch the graph
-	with tf.Session() as sess:
-	    sess.run(init)
+    # Launch the graph
+    with tf.Session() as sess:
+        sess.run(init)
 
-	    # Training cycle
-	    for epoch in range(training_epochs):
-	        total_cost = 0.
-	        total_batch = int(data.num_examples/batch_size)
-	        # Loop over all batches
-	        for i in range(total_batch):
-	            batch_x, batch_y = data.next_batch(batch_size)
-	            # Run optimization op (backprop) and cost op (to get loss value)
-	            _, c = sess.run([train_step, cost], feed_dict={x: batch_x})
+        # Training cycle
+        for epoch in range(training_epochs):
+            total_cost = 0.
+            total_batch = int(data.num_examples/batch_size)
+            # Loop over all batches
+            for i in range(total_batch):
+                batch_x, batch_y = data.next_batch(batch_size)
+                # Run optimization op (backprop) and cost op (to get loss value)
+                _, c = sess.run([train_step, cost], feed_dict={x: batch_x})
 
-	            # Collect cost for each batch
-	            total_cost += c
+                # Collect cost for each batch
+                total_cost += c
 
-	        # Compute average loss for each epoch
-	        avg_cost = total_cost/total_batch
+            # Compute average loss for each epoch
+            avg_cost = total_cost/total_batch
 
-	        ### compute test set average cost for each epoch given current state of weights
-	        test_avg_cost = cost.eval({x: test.features})
+            ### compute test set average cost for each epoch given current state of weights
+            test_avg_cost = cost.eval({x: test.features})
 
-	        # Display logs per epoch step
-	        if epoch % display_step == 0:
-	            print("Epoch:", '%04d' % (epoch+1), 
-	                "cost=", "{:.9f}".format(avg_cost), 
-	                "test cost=", "{:.9f}".format(test_avg_cost))
-
-
-	    print("Optimization Finished!")
-
-	    start_time = time.time()
+            # Display logs per epoch step
+            if epoch % display_step == 0:
+                print("Epoch:", '%04d' % (epoch+1), 
+                    "cost=", "{:.9f}".format(avg_cost), 
+                    "test cost=", "{:.9f}".format(test_avg_cost))
 
 
-	    ### NEW
-	    new_x = model[0].eval({x: data.features})
-	    new_test_x = model[0].eval({x: test.features})
-	    ENCODER_WEIGHTS.append(w1.eval())
-	    DECODER_WEIGHTS.append(w2.eval())
-	    ENCODER_BIASES.append(b1.eval())
-	    DECODER_BIASES.append(b2.eval())
+        print("Optimization Finished!")
+
+        start_time = time.time()
+
+
+        ### NEW
+        new_x = model[0].eval({x: data.features})
+        new_test_x = model[0].eval({x: test.features})
+        ENCODER_WEIGHTS.append(w1.eval())
+        DECODER_WEIGHTS.append(w2.eval())
+        ENCODER_BIASES.append(b1.eval())
+        DECODER_BIASES.append(b2.eval())
 
 	data = DataSet(new_x, np.round(new_x[:,0]))
 	test = DataSet(new_test_x, np.round(new_test_x[:,0]))
@@ -133,9 +131,8 @@ for layer in hidden_layers:
 
 
 
-
-
 ### FINETUNING
+print('Finetuning...')
 data=mnist.train
 test=mnist.test
 n_input = data.features.shape[1]

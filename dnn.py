@@ -58,7 +58,7 @@ model.append(activation(tf.add(tf.matmul(x, weights[0]), biases[0])))
 for j in range(len(hidden_layers))[1:]:
     model.append(activation(tf.add(tf.matmul(model[j-1], weights[j]), biases[j])))
 #create output layer
-model.append(tf.add(tf.matmul(model[j], weights[j+1]), biases[j+1])) 
+model.append(tf.add(tf.matmul(model[-1], weights[-1]), biases[-1])) 
 
 # Construct model
 logits = model[-1]  ### output layer logits

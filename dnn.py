@@ -1,4 +1,6 @@
-# TODO:  in save_model, also need to save config and paths to data
+# TODO:  modify DNN to initialize to pretrain weights
+# TODO:  other types of weight intiialization (see deep learning tutorials)
+# TODO:  in save_model, also need to save config and paths to file
 # TODO:  better docstring---description of parameters
 # TODO:  maybe abstract code to a DNN class
 # TODO:  regularization

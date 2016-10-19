@@ -1,4 +1,4 @@
-# TODO:  add save model, save cost boolean variables to config
+# TODO:  in save_model, also need to save config and paths to data
 # TODO:  better docstring---description of parameters
 # TODO:  maybe abstract code to a DNN class
 # TODO:  regularization
@@ -39,6 +39,7 @@ class DNN(object):
         self.training_epochs = config['training_epochs']
         self.batch_size = config['batch_size']
         self.display_step = config['display_step']
+        self.save_costs_to_csv = config['save_costs_to_csv']
 
         self._build_graph()
 
@@ -133,8 +134,29 @@ class DNN(object):
             #collect costs to save to file
             self.train_cost.append(avg_cost)
             self.validation_cost.append(validation_avg_cost)
-
         print("Optimization Finished!")
+
+        if self.save_costs_to_csv:
+            self.save_train_and_validation_cost()
+
+    def save_train_and_validation_cost(self):
+        '''Saves average train and validation set costs to .csv, all with unique filenames'''
+        # write validation_cost to its own separate file
+        name = 'validation_costs_'
+        file_path = self.save_path + name + time.strftime("%m%d%Y_%H;%M;%S") + '.csv'
+        with open(file_path, 'a') as f:
+            writer = csv.writer(f)
+            writer.writerow(self.validation_cost)
+        # all error measures in one file
+        df_to_disk = pd.DataFrame([self.train_cost, self.validation_cost],
+                                    index=[[self.hidden_layers,self.learning_rate,
+                                            self.training_epochs,self.batch_size], ''])
+        df_to_disk['error_type'] = ['train_cost', 'validation_cost']
+        # create file name and save as .csv
+        name = 'all_costs_'
+        file_path = self.save_path + name + time.strftime("%m%d%Y_%H;%M;%S") + '.csv'
+        df_to_disk.to_csv(file_path)
+        print("Train and validation costs saved in file: %s" % file_path)
 
     def get_test_cost_and_accuracy(self, test_dataset):
         '''
@@ -161,25 +183,6 @@ class DNN(object):
         print("Accuracy:", test_set_accuracy)
         return(test_set_cost, test_set_accuracy)
 
-    def save_train_and_validation_cost(self):
-        '''Saves average train and validation set costs to .csv'''
-        # write validation_cost to its own separate file
-        name = 'validation_cost_'
-        file_path = self.save_path + name + time.strftime("%m%d%Y_%H;%M") + '.csv'
-        with open(file_path, 'a') as f:
-            writer = csv.writer(f)
-            writer.writerow(self.validation_cost)
-        # all error measures in one file
-        df_to_disk = pd.DataFrame([self.train_cost, self.validation_cost],
-                                    index=[[self.hidden_layers,self.learning_rate,
-                                            self.training_epochs,self.batch_size], ''])
-        df_to_disk['error_type'] = ['train_cost', 'validation_cost']
-        # create file name and save as .csv
-        name = 'all_errors_'
-        file_path = self.save_path + name + time.strftime("%m%d%Y_%H;%M") + '.csv'
-        df_to_disk.to_csv(file_path)
-        print("Train and validation errors saved in file: %s" % file_path)
-
     def save_model(self, file_name):
         ### SAVE MODEL WEIGHTS TO DISK
         file_path = self.saver.save(self.sess, self.save_path + file_name)
@@ -188,7 +191,7 @@ class DNN(object):
 
 ### EXAMPLE USAGE
 if __name__ == '__main__':
-    from dnn_class import DNN
+    from dnn import DNN
     import tensorflow as tf
     import numpy as np
     from dataset import DataSet
@@ -210,21 +213,22 @@ if __name__ == '__main__':
         'learning_rate': 0.001,
         'training_epochs': 3,
         'batch_size': 100,
-        'display_step': 1
+        'display_step': 1,
+        'save_costs_to_csv': True
     }
 
     ### Buid, train, and save model
     with tf.Session() as sess:
-        dnn = DNN(sess, config, train_dataset, validation_dataset)
-        dnn.train()
-        c, a = dnn.get_test_cost_and_accuracy(test_dataset)
-        dnn.save_train_and_validation_cost()
+        dnn = DNN(sess, config, train_dataset, validation_dataset)  # init config and build graph
+        dnn.train() 
         dnn.save_model('model.ckpt')
+        #evaluate model on a test set
+        c, a = dnn.get_test_cost_and_accuracy(test_dataset)
 
     ### To reload model in same ipython session with same graph defined, run:
     # sess = tf.InteractiveSession()
     # saver = tf.train.Saver()
     # saver.restore(sess, config['save_path'] + 'model.ckpt')
 
-    ### To reload model in new ipython session see utils.py
+    ### To reload model in new ipython session see random.py
 

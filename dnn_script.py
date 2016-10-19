@@ -3,6 +3,7 @@ import time
 import csv
 import pandas as pd
 import tensorflow as tf
+from dataset import DataSet
 from tensorflow.examples.tutorials.mnist import input_data
 
 
@@ -18,26 +19,28 @@ and will need to be modified for other datasets.
 # TODO:  testing
 
 
-# Get data
+# Get and define data
 mnist = input_data.read_data_sets("/tmp/data/", one_hot=True)
-
+train_dataset = DataSet(mnist.train.images, mnist.train.labels)
+validation_dataset = DataSet(mnist.validation.images, mnist.validation.labels)
+test_dataset = DataSet(mnist.test.images, mnist.test.labels)
 
 ### SETUP NEURAL NETWORK HYPERPARAMETERS
-output_folder_path = "/Users/jon/Output/biotensorflow/"
-data=mnist
-hidden_layers=[200,100]
+save_path = "/Users/jon/Output/biotensorflow/"
+save_model_filename = 'model.ckpt'
+hidden_layers=[100,50]
 activation=tf.nn.relu
-cost_function=tf.nn.softmax_cross_entropy_with_logits
+cost_function=tf.nn.softmax_cross_entropy_with_logits #function with params = logits, y
 optimizer=tf.train.AdamOptimizer
 regularizer=None 
 learning_rate=0.001
-training_epochs=10
+training_epochs=3
 batch_size=100 
 display_step=1
 
-    
-n_input = 784 # calculute this from input x
-n_classes = 10 # calculate this from y
+print('Building Graph...')
+n_input = train_dataset.features.shape[1] # determine from train dataset
+n_classes = train_dataset.labels.shape[1]  
 
 # tf Graph input
 x = tf.placeholder("float", [None, n_input])
@@ -45,6 +48,7 @@ y = tf.placeholder("float", [None, n_classes])
 
 # Store layer weights & biases (initialized using random_normal)
 all_layers = [n_input] + hidden_layers + [n_classes]
+print('Network Architecture: ', all_layers)
 weights=[]
 biases=[]
 for i in range(len(all_layers)-1):
@@ -74,10 +78,12 @@ logits = model[-1]  ### output layer logits
 # Define cost (objective function) and optimizer
 cost = tf.reduce_mean(cost_function(logits, y))
 train_step = optimizer(learning_rate=learning_rate).minimize(cost)
+print('Finished Building DNN Graph')
 
 # initialize containers for writing results to file
-train_cost = []; test_cost = []; 
+train_cost = []; validation_cost = []; 
 
+print('Training DNN...')
 # Initializing the variables
 init = tf.initialize_all_variables()
 
@@ -93,10 +99,11 @@ with tf.Session() as sess:
     # Training cycle
     for epoch in range(training_epochs):
         total_cost = 0.
-        total_batch = int(data.train.num_examples/batch_size)
+        total_batch = int(train_dataset.num_examples/batch_size)
+
         # Loop over all batches
         for i in range(total_batch):
-            batch_x, batch_y = data.train.next_batch(batch_size)
+            batch_x, batch_y = train_dataset.next_batch(batch_size)
             # Run optimization op (backprop) and cost op (to get loss value)
             _, c = sess.run([train_step, cost], feed_dict={x: batch_x, y: batch_y})
     
@@ -106,76 +113,67 @@ with tf.Session() as sess:
         # Compute average loss for each epoch
         avg_cost = total_cost/total_batch
 
-        #compute test set average cost for each epoch given current state of weights
-        test_avg_cost = cost.eval({x: data.test.images, y: data.test.labels})
+        #compute validation set average cost for each epoch given current state of weights
+        validation_avg_cost = cost.eval({x: validation_dataset.features, 
+                                        y: validation_dataset.labels})
 
         # Display logs per epoch step
         if epoch % display_step == 0:
-            print("Epoch:", '%04d' % (epoch+1), "cost=", \
-                "{:.9f}".format(avg_cost), "test cost=", \
-                "{:.9f}".format(test_avg_cost))
+            print("Epoch:", '%04d' % (epoch+1), "train cost=", \
+                "{:.9f}".format(avg_cost), "validation cost=", \
+                "{:.9f}".format(validation_avg_cost))
 
         #collect costs to save to file
         train_cost.append(avg_cost)
-        test_cost.append(test_avg_cost)
+        validation_cost.append(validation_avg_cost)
 
     print("Optimization Finished!")
 
     ### SAVE .csv files of error measures
-    # write test_cost to its own separate file
-    name='test_cost_'
-    file_path = output_folder_path + name + time.strftime("%m%d%Y_%H;%M") + '.csv'
+    # write validation_cost to its own separate file
+    name='validation_costs_'
+    file_path = save_path + name + time.strftime("%m%d%Y_%H;%M;%S") + '.csv'
     with open(file_path, 'a') as f:
         writer=csv.writer(f)
-        writer.writerow(test_cost)
+        writer.writerow(validation_cost)
     # all error measures in one file
-    df_to_disk = pd.DataFrame([train_cost, test_cost],
+    df_to_disk = pd.DataFrame([train_cost, validation_cost],
                                 index=[[hidden_layers,learning_rate,training_epochs,batch_size], ''])
-    df_to_disk['error_type'] = ['train_cost', 'test_cost']
+    df_to_disk['error_type'] = ['train_cost', 'validation_cost']
     # create file name and save as .csv
-    name = 'all_errors_'
-    file_path = output_folder_path + name + time.strftime("%m%d%Y_%H;%M") + '.csv'
+    name = 'all_costs_'
+    file_path = save_path + name + time.strftime("%m%d%Y_%H;%M;%S") + '.csv'
     df_to_disk.to_csv(file_path)
+    print("Train and validation costs saved in file: %s" % file_path)
 
     ### TEST MODEL
-    correct_prediction = tf.equal(tf.argmax(logits, 1), tf.argmax(y, 1))
+    #calculate test cost
+    test_set_cost = cost.eval({x: test_dataset.features, 
+                                y: test_dataset.labels})
+    print('Test set cost:', test_set_cost)
     # Calculate accuracy
+    correct_prediction = tf.equal(tf.argmax(logits, 1), tf.argmax(y, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
-    print("Accuracy:", accuracy.eval({x: data.test.images, y: data.test.labels}))
+    print("Accuracy:", accuracy.eval({x: test_dataset.features, y: test_dataset.labels}))
 
     ### SAVE MODEL WEIGHTS TO DISK
-    save_path = saver.save(sess, output_folder_path + 'model.ckpt')
-    print("Model saved in file: %s" % save_path)
+    file_path = saver.save(sess, save_path + save_model_filename)
+    print("Model saved in file: %s" % file_path)
 
 
+### To reload model in same ipython session with same graph defined, run:
+# sess = tf.InteractiveSession()
+# saver = tf.train.Saver()
+# saver.restore(sess, save_path + save_model_filename)
 
+### To reload model in new ipython session see random.py
 
-### INTERACTIVE SESSION FOR LOADING SAVED MODEL AND CALCULATING HIDDEN LAYER VALUES
-#load saved model
-sess = tf.InteractiveSession()
-saver = tf.train.Saver()
-saver.restore(sess, output_folder_path+'model.ckpt') ### restores previous session with stored state of all variables
-print("Model restored from file: %s" % output_folder_path)
-# print 1st layer weights
-w1=weights[0].eval()
-print(w1)
-
-# get hidden layer values using test set 
-h1 = model[0].eval({x: data.test.images})
-h2 = model[1].eval({x: data.test.images})
-# save hidden layer values
-import numpy as np
-np.savetxt(output_folder_path + 'h1_test.csv', h1, delimiter=",")  ### np.loadtxt('foo.csv', delimiter=",")
-np.savetxt(output_folder_path + 'h2_test.csv', h2, delimiter=",")  ### np.loadtxt('foo.csv', delimiter=",")
-
-#first row 
-h1[0,:]
-#first column 
-h1[:,0]
-#first 3 column values for first 3 rows
-h1[0:3,0:3]
-
-sess.close()
+### example usage after model loaded 
+# weights[0].eval()  # print 1st layer weights
+# h1=model[0].eval({x: train_dataset})  # get hidden layer 1 values using train data
+### save hidden layer values
+# import numpy as np
+# np.savetxt(save_path + 'h1_train.csv', h1, delimiter=",")  ### np.loadtxt('h1_train.csv', delimiter=",")
 
 
 

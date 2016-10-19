@@ -1,3 +1,11 @@
+from __future__ import division, print_function, absolute_import
+import time
+import csv
+import pandas as pd
+import tensorflow as tf
+from tensorflow.examples.tutorials.mnist import input_data
+
+
 '''
 A Deep Neural Network (Multilayer Perceptron) implementation using the 
 TensorFlow library. This implementation currently uses the MNIST dataset 
@@ -10,14 +18,7 @@ and will need to be modified for other datasets.
 # TODO:  testing
 
 
-import time
-import csv
-import pandas as pd
-import tensorflow as tf
-from __future__ import division, print_function, absolute_import
-
-# Import MNIST data
-from tensorflow.examples.tutorials.mnist import input_data
+# Get data
 mnist = input_data.read_data_sets("/tmp/data/", one_hot=True)
 
 

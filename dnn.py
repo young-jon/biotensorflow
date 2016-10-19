@@ -1,4 +1,5 @@
 # TODO:  modify DNN to initialize to pretrain weights
+# TODO:  test save_model and restoring model after saving multiple different architectures in same directory
 # TODO:  other types of weight intiialization (see deep learning tutorials)
 # TODO:  in save_model, also need to save config and paths to file
 # TODO:  better docstring---description of parameters

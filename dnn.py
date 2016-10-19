@@ -130,7 +130,7 @@ class DNN(object):
 
             # Display logs per epoch step
             if epoch % self.display_step == 0:
-                print("Epoch:", '%04d' % (epoch+1), "cost=", \
+                print("Epoch:", '%04d' % (epoch+1), "train cost=", \
                     "{:.9f}".format(avg_cost), "validation cost=", \
                     "{:.9f}".format(validation_avg_cost))
 
@@ -234,4 +234,11 @@ if __name__ == '__main__':
     # saver.restore(sess, config['save_path'] + 'model.ckpt')
 
     ### To reload model in new ipython session see random.py
+
+    ### example usage after model loaded 
+    # weights[0].eval()  # print 1st layer weights
+    # h1=model[0].eval({x: train_dataset})  # get hidden layer 1 values using train data
+    ### save hidden layer values
+    # import numpy as np
+    # np.savetxt(save_path + 'h1_train.csv', h1, delimiter=",")  ### np.loadtxt('h1_train.csv', delimiter=",")
 

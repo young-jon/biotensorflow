@@ -1,47 +1,46 @@
-'''
-A Deep Autoencoder implementation using the TensorFlow library. This 
-implementation uses the MNIST dataset and will need to be modified for other 
-datasets.
-'''
-
-# TODO:  better docstring---description of parameters
-# TODO:  maybe abstract code to an Autoencoder class...maybe
-# TODO:  regularization
-# TODO:  testing
-
-
+from __future__ import division, print_function, absolute_import
 import time
 import csv
 import tensorflow as tf
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-from __future__ import division, print_function, absolute_import
-
-# Import MNIST data
 from tensorflow.examples.tutorials.mnist import input_data
-mnist = input_data.read_data_sets("/tmp/data/", one_hot=True)
+from dataset import DataSet
 
+'''
+A Deep Autoencoder implementation using the TensorFlow library.
+'''
+
+# TODO:  better docstring---description of parameters
+# TODO:  regularization
+# TODO:  testing
+
+
+# Get and define data
+mnist = input_data.read_data_sets("/tmp/data/", one_hot=True)
+train_dataset = DataSet(mnist.train.images, mnist.train.labels)
+validation_dataset = DataSet(mnist.validation.images, mnist.validation.labels)
 
 ### SETUP NEURAL NETWORK HYPERPARAMETERS
-output_folder_path = "/Users/jon/Output/biotensorflow/"
-data=mnist
-encoder_hidden_layers=[512,256]
+save_path = "/Users/jon/Output/biotensorflow/"
+save_model_filename = 'model.ckpt'
+encoder_hidden_layers=[256, 128]
 activation=tf.nn.sigmoid
 cost_function=tf.nn.sigmoid_cross_entropy_with_logits
 optimizer=tf.train.RMSPropOptimizer
 regularizer=None 
 learning_rate=0.01
-training_epochs=10
+training_epochs=20
 batch_size=256 
 display_step=1
-examples_to_show=10
+get_reconstruction_images=True
 output_layer_activation=tf.nn.sigmoid  ### for generating images of the 
 # reconstructions only---should match activation used in cost_function. use 
 # tf.identity to output affine transformation without an activation function. 
 
-    
-n_input = 784 # todo:  calculute this from input x
+print('Building Graph...')
+n_input = train_dataset.features.shape[1] # determine from train dataset
 
 # tf Graph input
 x = tf.placeholder("float", [None, n_input])
@@ -53,6 +52,7 @@ for h in reversed(encoder_hidden_layers[:-1]):
 
 # Store layer weights & biases (initialized using random_normal)
 all_layers = [n_input] + hidden_layers + [n_input]
+print('Network Architecture: ', all_layers)
 weights=[]
 biases=[]
 for i in range(len(all_layers)-1):
@@ -70,7 +70,7 @@ for j in range(len(hidden_layers))[1:]:
 model.append(tf.add(tf.matmul(model[-1], weights[-1]), biases[-1])) 
 
 # Construct model
-reconstruction_logits = model[-1]   #output layer i.e., reconstructions
+logits = model[-1]   #output layer i.e., reconstructions
 
 ### NOTES ###
 # the output of tf.nn.sigmoid_cross_entropy_with_logits(logits, y) is a 2D matrix (256,784) 
@@ -84,15 +84,17 @@ reconstruction_logits = model[-1]   #output layer i.e., reconstructions
 # see tf.nn.sigmoid_cross_entropy_with_logits??
 
 # Define cost (objective function) and optimizer
-cost = tf.reduce_mean(cost_function(reconstruction_logits, x))
+cost = tf.reduce_mean(cost_function(logits, x))
 # MSE (below) seems to give worse results than cross entropy
-# cost = tf.reduce_mean(tf.pow(x - tf.nn.sigmoid(reconstruction_logits), 2))
+# cost = tf.reduce_mean(tf.pow(x - tf.nn.sigmoid(logits), 2))
 
 train_step = optimizer(learning_rate=learning_rate).minimize(cost)
+print('Finished Building DA Graph')
 
 # initialize containers for writing results to file
-train_cost = []; test_cost = []; 
+train_cost = []; validation_cost = []; 
 
+print('Training DA...')
 # Initializing the variables
 init = tf.initialize_all_variables()
 
@@ -108,10 +110,10 @@ with tf.Session() as sess:
     # Training cycle
     for epoch in range(training_epochs):
         total_cost = 0.
-        total_batch = int(data.train.num_examples/batch_size)
+        total_batch = int(train_dataset.num_examples/batch_size)
         # Loop over all batches
         for i in range(total_batch):
-            batch_x, batch_y = data.train.next_batch(batch_size)
+            batch_x, batch_y = train_dataset.next_batch(batch_size)
             # Run optimization op (backprop) and cost op (to get loss value)
             _, c = sess.run([train_step, cost], feed_dict={x: batch_x})
 
@@ -122,56 +124,55 @@ with tf.Session() as sess:
         avg_cost = total_cost/total_batch
 
         # Compute test set average cost for each epoch given current state of weights
-        test_avg_cost = cost.eval({x: data.test.images})
+        validation_avg_cost = cost.eval({x: validation_dataset.features})
 
         # Display logs per epoch step
         if epoch % display_step == 0:
             print("Epoch:", '%04d' % (epoch+1), 
-                "cost=", "{:.9f}".format(avg_cost), 
-                "test cost=", "{:.9f}".format(test_avg_cost))
+                "train cost=", "{:.9f}".format(avg_cost), 
+                "validation cost=", "{:.9f}".format(validation_avg_cost))
 
         #collect costs to save to file
         train_cost.append(avg_cost)
-        test_cost.append(test_avg_cost)
+        validation_cost.append(validation_avg_cost)
 
     print("Optimization Finished!")
 
-    ### SAVE .csv files of costs
-    ### write test_cost to its own separate file
-    name='test_cost_'
-    file_path = output_folder_path + name + time.strftime("%m%d%Y_%H;%M") + '.csv'
+    ### SAVE .csv files of error measures
+    # write validation_cost to its own separate file
+    name='validation_costs_'
+    file_path = save_path + name + time.strftime("%m%d%Y_%H;%M;%S") + '.csv'
     with open(file_path, 'a') as f:
         writer=csv.writer(f)
-        writer.writerow(test_cost)
-    ### all error measures in one file
-    df_to_disk = pd.DataFrame([train_cost, test_cost],
+        writer.writerow(validation_cost)
+    # all error measures in one file
+    df_to_disk = pd.DataFrame([train_cost, validation_cost],
                                 index=[[hidden_layers,learning_rate,training_epochs,batch_size], ''])
-    df_to_disk['error_type'] = ['train_cost', 'test_cost']
-    ### create file name and save as .csv
-    name = 'all_errors_'
-    file_path = output_folder_path + name + time.strftime("%m%d%Y_%H;%M") + '.csv'
+    df_to_disk['error_type'] = ['train_cost', 'validation_cost']
+    # create file name and save as .csv
+    name = 'all_costs_'
+    file_path = save_path + name + time.strftime("%m%d%Y_%H;%M;%S") + '.csv'
     df_to_disk.to_csv(file_path)
+    print("Train and validation costs saved in file: %s" % file_path)
 
     ### SAVE MODEL WEIGHTS TO DISK
-    save_path = saver.save(sess, output_folder_path + 'model.ckpt')
-    print("Model saved in file: %s" % save_path)
+    file_path = saver.save(sess, save_path + save_model_filename)
+    print("Model saved in file: %s" % file_path)
 
     ### GENERATE FIGURE OF RECONSTRUCTIONS
-    encode_decode = sess.run(
-        output_layer_activation(reconstruction_logits), 
-        feed_dict={x: mnist.test.images[:examples_to_show]}
-        )
-    ### Compare original images with their reconstructions
-    f, a = plt.subplots(2, 10, figsize=(10, 2))
-    for i in range(examples_to_show):
-        a[0][i].imshow(np.reshape(mnist.test.images[i], (28, 28)))
-        a[1][i].imshow(np.reshape(encode_decode[i], (28, 28)))
-    f.show()
-    plt.draw()
-    plt.waitforbuttonpress()
+    if get_reconstruction_images:
+        '''dispay 10 images from validation set and their reconstructions'''
+        encode_decode = sess.run(output_layer_activation(logits), 
+                            feed_dict={x: validation_dataset.features[:10]})
+        ### Compare original images with their reconstructions
+        f, a = plt.subplots(2, 10, figsize=(10, 2))
+        for i in range(10):
+            a[0][i].imshow(np.reshape(validation_dataset.features[i], (28, 28)))
+            a[1][i].imshow(np.reshape(encode_decode[i], (28, 28)))
+        f.show()
+        plt.draw()
+        plt.waitforbuttonpress()
 
-
-    ### See dnn.py for how to load saved model in an interactive session
 
 
 

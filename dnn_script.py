@@ -5,7 +5,7 @@ import pandas as pd
 import tensorflow as tf
 from dataset import DataSet
 from tensorflow.examples.tutorials.mnist import input_data
-
+import numpy as np
 
 '''
 A Deep Neural Network (Multilayer Perceptron) implementation using the 
@@ -28,7 +28,7 @@ test_dataset = DataSet(mnist.test.images, mnist.test.labels)
 ### SETUP NEURAL NETWORK HYPERPARAMETERS
 save_path = "/Users/jon/Output/biotensorflow/"
 save_model_filename = 'model.ckpt'
-hidden_layers=[100,50]
+hidden_layers=[500,100]
 activation=tf.nn.relu
 cost_function=tf.nn.softmax_cross_entropy_with_logits #function with params = logits, y
 optimizer=tf.train.AdamOptimizer
@@ -77,6 +77,10 @@ logits = model[-1]  ### output layer logits
 
 # Define cost (objective function) and optimizer
 cost = tf.reduce_mean(cost_function(logits, y))
+# alternate version of same (below)
+# log_yhat = tf.nn.log_softmax(logits)
+# cost = tf.reduce_mean(-tf.reduce_sum(y*log_yhat,1))
+# cost = -tf.reduce_sum(y*log_yhat)
 train_step = optimizer(learning_rate=learning_rate).minimize(cost)
 print('Finished Building DNN Graph')
 

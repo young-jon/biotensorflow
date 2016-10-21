@@ -24,27 +24,25 @@ datasets.
 
 # Import MNIST data
 mnist = input_data.read_data_sets("/tmp/data/", one_hot=True)
+train_dataset = DataSet(mnist.train.images, mnist.train.labels)
+validation_dataset = DataSet(mnist.validation.images, mnist.validation.labels)
 
 ### SETUP NEURAL NETWORK HYPERPARAMETERS
 output_folder_path = "/Users/jdy10/Output/biotensorflow/"
-data=mnist.train
-test=mnist.test
-hidden_layers=[512,256]
+hidden_layers=[256,128]
 activation=tf.nn.sigmoid
 cost_function=tf.nn.sigmoid_cross_entropy_with_logits
 # optimizer=tf.train.GradientDescentOptimizer
 optimizer=tf.train.RMSPropOptimizer
 regularizer=None 
 learning_rate=0.01
-training_epochs=5
+training_epochs=3
 batch_size=256 
 display_step=1
 examples_to_show=10
 output_layer_activation=tf.nn.sigmoid  ### for generating images of the 
 # reconstructions only---should match activation used in cost_function. use 
 # tf.identity to output affine transformation without an activation function. 
-data.features = data.images
-test.features = test.images
 ENCODER_WEIGHTS = []
 DECODER_WEIGHTS = []
 ENCODER_BIASES = []
@@ -52,7 +50,7 @@ DECODER_BIASES = []
 
 for layer in hidden_layers:
     print('Pretraining', layer, 'layer...')
-    n_input = data.features.shape[1] # todo:  calculute this from input x
+    n_input = train_dataset.features.shape[1] # todo:  calculute this from input x
 
     # tf Graph input
     x = tf.placeholder("float", [None, n_input])
@@ -87,10 +85,10 @@ for layer in hidden_layers:
         # Training cycle
         for epoch in range(training_epochs):
             total_cost = 0.
-            total_batch = int(data.num_examples/batch_size)
+            total_batch = int(train_dataset.num_examples/batch_size)
             # Loop over all batches
             for i in range(total_batch):
-                batch_x, batch_y = data.next_batch(batch_size)
+                batch_x, batch_y = train_dataset.next_batch(batch_size)
                 # Run optimization op (backprop) and cost op (to get loss value)
                 _, c = sess.run([train_step, cost], feed_dict={x: batch_x})
 
@@ -100,42 +98,40 @@ for layer in hidden_layers:
             # Compute average loss for each epoch
             avg_cost = total_cost/total_batch
 
-            ### compute test set average cost for each epoch given current state of weights
-            test_avg_cost = cost.eval({x: test.features})
+            ### compute validation set average cost for each epoch given current state of weights
+            validation_avg_cost = cost.eval({x: validation_dataset.features})
 
             # Display logs per epoch step
             if epoch % display_step == 0:
                 print("Epoch:", '%04d' % (epoch+1), 
                     "cost=", "{:.9f}".format(avg_cost), 
-                    "test cost=", "{:.9f}".format(test_avg_cost))
+                    "validation cost=", "{:.9f}".format(validation_avg_cost))
 
 
         print("Optimization Finished!")
 
         start_time = time.time()
 
-
         ### NEW
-        new_x = model[0].eval({x: data.features})
-        new_test_x = model[0].eval({x: test.features})
+        new_x = model[0].eval({x: train_dataset.features})
+        new_validation_x = model[0].eval({x: validation_dataset.features})
         ENCODER_WEIGHTS.append(w1.eval())
         DECODER_WEIGHTS.append(w2.eval())
         ENCODER_BIASES.append(b1.eval())
         DECODER_BIASES.append(b2.eval())
 
-	data = DataSet(new_x, np.round(new_x[:,0]))
-	test = DataSet(new_test_x, np.round(new_test_x[:,0]))
+	train_dataset = DataSet(new_x, np.round(new_x[:,0]))
+	validation_dataset = DataSet(new_validation_x, np.round(new_validation_x[:,0]))
 
 	# end_time = time.time()
 	# print('The new code for ' + str(layer) + ' ran for %.2fm' % ((end_time - start_time) / 60.))
 
 
-
 ### FINETUNING
 print('Finetuning...')
-data=mnist.train
-test=mnist.test
-n_input = data.features.shape[1]
+train_dataset = DataSet(mnist.train.images, mnist.train.labels)
+validation_dataset = DataSet(mnist.validation.images, mnist.validation.labels)
+n_input = train_dataset.features.shape[1]
 PRETRAIN_WEIGHTS = ENCODER_WEIGHTS + list(reversed(DECODER_WEIGHTS))
 PRETRAIN_BIASES = ENCODER_BIASES + list(reversed(DECODER_BIASES))
 
@@ -187,7 +183,7 @@ cost = tf.reduce_mean(cost_function(reconstruction_logits, x))
 train_step = optimizer(learning_rate=learning_rate).minimize(cost)
 
 # initialize containers for writing results to file
-train_cost = []; test_cost = []; 
+train_cost = []; validation_cost = []; 
 
 # Initializing the variables
 init = tf.initialize_all_variables()
@@ -204,10 +200,10 @@ with tf.Session() as sess:
     # Training cycle
     for epoch in range(training_epochs):
         total_cost = 0.
-        total_batch = int(data.num_examples/batch_size)
+        total_batch = int(train_dataset.num_examples/batch_size)
         # Loop over all batches
         for i in range(total_batch):
-            batch_x, batch_y = data.next_batch(batch_size)
+            batch_x, batch_y = train_dataset.next_batch(batch_size)
             # Run optimization op (backprop) and cost op (to get loss value)
             _, c = sess.run([train_step, cost], feed_dict={x: batch_x})
 
@@ -217,50 +213,30 @@ with tf.Session() as sess:
         # Compute average loss for each epoch
         avg_cost = total_cost/total_batch
 
-        #compute test set average cost for each epoch given current state of weights
-        test_avg_cost = cost.eval({x: test.features})
+        #compute validation set average cost for each epoch given current state of weights
+        validation_avg_cost = cost.eval({x: validation_dataset.features})
 
         # Display logs per epoch step
         if epoch % display_step == 0:
             print("Epoch:", '%04d' % (epoch+1), 
                 "cost=", "{:.9f}".format(avg_cost), 
-                "test cost=", "{:.9f}".format(test_avg_cost))
+                "validation cost=", "{:.9f}".format(validation_avg_cost))
 
         #collect costs to save to file
         train_cost.append(avg_cost)
-        test_cost.append(test_avg_cost)
+        validation_cost.append(validation_avg_cost)
 
     print("Optimization Finished!")
-
-    # ### SAVE .csv files of costs
-    # ### write test_cost to its own separate file
-    # name='test_cost_'
-    # file_path = output_folder_path + name + time.strftime("%m%d%Y_%H;%M") + '.csv'
-    # with open(file_path, 'a') as f:
-    #     writer=csv.writer(f)
-    #     writer.writerow(test_cost)
-    # ### all error measures in one file
-    # df_to_disk = pd.DataFrame([train_cost, test_cost],
-    #                             index=[[hidden_layers,learning_rate,training_epochs,batch_size], ''])
-    # df_to_disk['error_type'] = ['train_cost', 'test_cost']
-    # ### create file name and save as .csv
-    # name = 'all_errors_'
-    # file_path = output_folder_path + name + time.strftime("%m%d%Y_%H;%M") + '.csv'
-    # df_to_disk.to_csv(file_path)
-
-    # ### SAVE MODEL WEIGHTS TO DISK
-    # save_path = saver.save(sess, output_folder_path + 'model.ckpt')
-    # print("Model saved in file: %s" % save_path)
 
     ### GENERATE FIGURE OF RECONSTRUCTIONS
     encode_decode = sess.run(
         output_layer_activation(reconstruction_logits), 
-        feed_dict={x: mnist.test.images[:examples_to_show]}
+        feed_dict={x: validation_dataset.features[:examples_to_show]}
         )
     # Compare original images with their reconstructions
     f, a = plt.subplots(2, 10, figsize=(10, 2))
     for i in range(examples_to_show):
-        a[0][i].imshow(np.reshape(mnist.test.images[i], (28, 28)))
+        a[0][i].imshow(np.reshape(validation_dataset.features[i], (28, 28)))
         a[1][i].imshow(np.reshape(encode_decode[i], (28, 28)))
     f.show()
     plt.draw()

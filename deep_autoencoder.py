@@ -109,10 +109,10 @@ class DA(object):
         # MSE (below) seems to give worse results than cross entropy
         # self.cost = tf.reduce_mean(tf.pow(self.x - tf.nn.sigmoid(self.logits), 2))
         self.train_step = self.optimizer(learning_rate=self.learning_rate).minimize(self.cost)
-        print('Finished Building DA Graph')
+        print('Finished Building Autoencoder Graph')
 
     def train(self):   ### Same as DNN except for feed_dict
-        print('Training DA...')
+        print('Training Autoencoder...')
         # initialize containers for writing results to file
         self.train_cost = []; self.validation_cost = []; 
 

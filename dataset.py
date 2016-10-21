@@ -1,5 +1,7 @@
 import numpy as np
 
+# TODO:  modify to accept unsupervised data
+
 class DataSet:
     """
     Defines a ML DataSet

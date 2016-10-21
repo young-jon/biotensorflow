@@ -28,10 +28,13 @@ class DNN(object):
 
     '''
 
-    def __init__(self, sess, config, train_dataset, validation_dataset):
+    def __init__(self, sess, config, train_dataset, validation_dataset,
+                 pretrain_weights=None, pretrain_biases=None):
         self.sess = sess
         self.train_dataset = train_dataset
         self.validation_dataset = validation_dataset
+        self.pretrain_weights = pretrain_weights
+        self.pretrain_biases = pretrain_biases
         self.save_path = config['save_path']
         self.hidden_layers = config['hidden_layers']
         self.activation = config['activation']
@@ -62,9 +65,17 @@ class DNN(object):
         print('Network Architecture: ', all_layers)
         self.weights=[]
         self.biases=[]
-        for i in range(len(all_layers)-1):
-            self.weights.append(tf.Variable(tf.random_normal([all_layers[i], all_layers[i+1]])))
-            self.biases.append(tf.Variable(tf.random_normal([all_layers[i+1]])))
+        if self.pretrain_weights and self.pretrain_biases:
+            print('Using pretrained weights and biases.')
+            for i in range(len(self.pretrain_weights)):
+                self.weights.append(tf.Variable(self.pretrain_weights[i]))
+                self.biases.append(tf.Variable(self.pretrain_biases[i]))
+            self.weights.append(tf.Variable(tf.random_normal([all_layers[i+1], all_layers[i+2]])))
+            self.biases.append(tf.Variable(tf.random_normal([all_layers[i+2]])))
+        else:
+            for i in range(len(all_layers)-1):
+                self.weights.append(tf.Variable(tf.random_normal([all_layers[i], all_layers[i+1]])))
+                self.biases.append(tf.Variable(tf.random_normal([all_layers[i+1]])))
 
         # CREATE MODEL
         # create hidden layer 1

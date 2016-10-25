@@ -24,16 +24,18 @@
 - [x] **3.** curate list of all activation functions, optimizers, cost functions, and regularizers that can be used (and have been tested) with dnn.py
 - [x] **4.** better understanding of tensorflow cost function api
 - [ ] **5.** (*@mike*) run dnn.py on gpu
-- [ ] **6.** add different types of regularization to dnn.py
+	- [x] **5a.** run dnn.py on single gpu
+	- [ ] **5b.** run dnn.py on multiple gpus
+- [ ] **6.** (@lujia) add different types of regularization to dnn.py
 	- [ ] **6a.** sparse
 	- [ ] **6b.** dropout
 	- [ ] **6c.** denoising
 	- [ ] **6d.** batch normalization
-- [ ] **7.** add code to dnn.py to decrease learning rate as training progresses (learning rate adaptation)
-- [ ] **8.** add momentum to dnn.py
-- [ ] **9.** testing (given a random seed, tests for making sure weights/outputs are computed as expected)
-	- [ ] **9a.** (*@mike*) figure out how to set random seed
-	- [ ] **9b.** create testing function
+- [ ] **7.** (@mike) add code to dnn.py to decrease learning rate as training progresses (learning rate adaptation)
+- [ ] **8.** (@mike) add momentum to dnn.py
+- [ ] **9.** (@mike) testing (given a random seed, tests for making sure weights/outputs are computed as expected)
+	- [x] **9a.** figure out how to set random seed
+	- [ ] **9b.** create testing functions
 - [ ] **10.** visualization 
 	- [ ] **10a.** as another type of testing to make sure algorithm is working
 		- eg., for autoencoder, images of an input next to an image of the reconstruction
@@ -47,7 +49,7 @@
 	- [x] deep neural network
 	- [x] deep autoencoder 
 	- [ ] stacked RBM pretraining (stacked RBM + deep autoencoder = DBN) *@jon*
-	- [ ] greedy autoencoder pretraining *@jon*
+	- [x] greedy autoencoder pretraining *@jon*
 	- [ ] semi-supervised/transfer learning
 	- [x] CNN
 	- [ ] multimodal

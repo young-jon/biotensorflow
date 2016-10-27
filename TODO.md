@@ -14,8 +14,8 @@
 - [ ] **1.** *(@lujia)*  user supplied data
 	- [ ] **1a.** create small *binary* valued prototyping dataset (~5000 x 500 (samples x features)). Ideally from one of the projects in the lab. for example, gene expression dataset.
 	- [ ] **1b.** create small *real* valued prototyping dataset similar to above. Ideally from one of the projects in the lab.
-	- [ ] **1c.** describe requirements for data (ie., data format, etc.)
-	- [ ] **1d.** write script to create train, validation, and test sets from a single dataset
+	- [ ] **1c.** describe requirements for data (ie., data format, etc.). add this to the function in 1d.
+	- [ ] **1d.** write function to create train, validation, and test sets from a single dataset and function to utils.py
 - [x] **2.** modify dnn.py to save results
 	- [x] **2a.** model 
 	- [x] **2b.** hidden layers

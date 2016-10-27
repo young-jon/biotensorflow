@@ -11,12 +11,11 @@
 		- [ ] 14, 15, 20.1-20.4
 
 ### biotensorflow (MOST IMPORTANT)
-- [ ] **1.** *(@lujia)*  modify dnn.py to accept user supplied data
+- [ ] **1.** *(@lujia)*  user supplied data
 	- [ ] **1a.** create small *binary* valued prototyping dataset (~5000 x 500 (samples x features)). Ideally from one of the projects in the lab. for example, gene expression dataset.
 	- [ ] **1b.** create small *real* valued prototyping dataset similar to above. Ideally from one of the projects in the lab.
 	- [ ] **1c.** describe requirements for data (ie., data format, etc.)
 	- [ ] **1d.** write script to create train, validation, and test sets from a single dataset
-	- [ ] **1e.** update dnn.py to work with any dataset that meets the formatting requirements above
 - [x] **2.** modify dnn.py to save results
 	- [x] **2a.** model 
 	- [x] **2b.** hidden layers

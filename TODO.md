@@ -30,8 +30,8 @@
 	- [ ] **6b.** dropout
 	- [ ] **6c.** denoising
 	- [ ] **6d.** batch normalization
-- [ ] **7.** (@mike) add code to dnn.py to decrease learning rate as training progresses (learning rate adaptation)
-- [ ] **8.** (@mike) add momentum to dnn.py
+- [x] **7.** (@mike) add code to dnn.py to decrease learning rate as training progresses (learning rate adaptation) Note: See 8.
+- [x] **8.** (@mike) add momentum to dnn.py Note: Momentum and/or learning rate adaptation already exists within the optimizers for tf.train. There exist optimizers that employ Adelta, Adagrad, adaptive moment estimation (Adam), RMSProp, Momentum, etc. These are described on pages 306-309 of the Deep Learning book. If these methods are not desired, there is also a GradientDescentOptimizer which by default uses a constant learning rate, but can be fed learning rate as a tensor, allowing for custom learning rate adaptation methods. 
 - [ ] **9.** (@mike) testing (given a random seed, tests for making sure weights/outputs are computed as expected)
 	- [x] **9a.** figure out how to set random seed
 	- [ ] **9b.** create testing functions

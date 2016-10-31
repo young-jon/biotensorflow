@@ -9,12 +9,11 @@ import csv
 import pandas as pd
 import matplotlib.pyplot as plt
 
-tf.reset_default_graph()
-np.random.seed(2)
-tf.set_random_seed(2)
-
-# TODO:  change variable name to previous code
 # TODO:  implement pseudolikelihood (see scikit, deep learning tutorials)
+# TODO:  other measures of generalization error
+# TODO:  automatic differentiation version
+
+
 class RBM(object):
     '''
     A Restricted Boltzmann Machine implementation using 1-step of Contrastive 

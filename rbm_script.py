@@ -9,12 +9,9 @@ import csv
 import pandas as pd
 import matplotlib.pyplot as plt
 
-tf.reset_default_graph()
-np.random.seed(2)
-tf.set_random_seed(2)
-
-# TODO:  change variable name to previous code
 # TODO:  implement pseudolikelihood (see scikit, deep learning tutorials)
+# TODO:  other measures of generalization error
+# TODO:  automatic differentiation version
 
 ### SETUP NEURAL NETWORK HYPERPARAMETERS
 save_path= '/Users/jon/Output/biotensorflow/'
@@ -51,14 +48,11 @@ weight_c = tf.constant(weight_cost, dtype=tf.float32)
 momentum = tf.placeholder(tf.float32)
 
 # Variables
-weights = tf.Variable(tf.random_normal([n_input, rbm_hidden_layer])) 
-hid_biases = tf.Variable(tf.random_normal([rbm_hidden_layer]))
-vis_biases = tf.Variable(tf.random_normal([n_input]))
 ### hinton
-# weights = tf.Variable(tf.random_normal([n_input, rbm_hidden_layer], stddev=0.1)) #remove .1 to use mean 0 stddev 1
+weights = tf.Variable(tf.random_normal([n_input, rbm_hidden_layer], stddev=0.1)) #remove .1 to use mean 0 stddev 1
 # could also use stddev = 0.01 or 0.001
-# hid_biases = tf.Variable(tf.zeros([rbm_hidden_layer]))
-# vis_biases = tf.Variable(tf.zeros([n_input]))
+hid_biases = tf.Variable(tf.zeros([rbm_hidden_layer]))
+vis_biases = tf.Variable(tf.zeros([n_input]))
 
 weights_increment  = tf.Variable(tf.zeros([n_input, rbm_hidden_layer]))
 vis_bias_increment = tf.Variable(tf.zeros([n_input]))

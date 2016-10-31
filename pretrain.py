@@ -19,10 +19,6 @@ from tensorflow.examples.tutorials.mnist import input_data
 #1. separate graph for each layer. save previous layer output as numpy.array to pass forward
 #2. cmgreen
 
-tf.reset_default_graph()
-np.random.seed(2)
-tf.set_random_seed(2)
-
 
 class SA(object):
     '''

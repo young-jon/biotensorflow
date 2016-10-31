@@ -180,6 +180,7 @@ if __name__ == '__main__':
     }
 
     ### SRBM PRETRAINING
+    print('Pretraining...')
     with tf.Session() as sess:
         srbm = SRBM(sess, config, train_dataset, validation_dataset)  # init config and build graph
         srbm.train()

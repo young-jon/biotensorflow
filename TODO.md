@@ -36,7 +36,7 @@
 	- [x] **9a.** figure out how to set random seed
 	- [ ] **9b.** create testing functions
 - [ ] **10.** visualization 
-	- [ ] **10a.** as another type of testing to make sure algorithm is working
+	- [x] **10a.** as another type of testing to make sure algorithm is working
 		- eg., for autoencoder, images of an input next to an image of the reconstruction
 	- [ ] **10b.** to understand results/effectiveness of training
 		- eg., plot of train and test error as a function of epochs (ie., how train and test error decrease over time)
@@ -47,7 +47,7 @@
 - algorithms to write:
 	- [x] deep neural network
 	- [x] deep autoencoder 
-	- [ ] stacked RBM pretraining (stacked RBM + deep autoencoder = DBN) *@jon*
+	- [x] stacked RBM pretraining (stacked RBM + deep autoencoder = DBN) *@jon*
 	- [x] greedy autoencoder pretraining *@jon*
 	- [ ] semi-supervised/transfer learning
 	- [x] CNN

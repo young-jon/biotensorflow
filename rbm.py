@@ -116,17 +116,17 @@ class RBM(object):
 
         ### BUILD MODEL
         ### Start positive phase of 1-step Contrastive Divergence
-        pos_hid_probs = tf.nn.sigmoid(tf.add(tf.matmul(self.x, self.weights), self.hid_biases))
-        pos_associations = tf.matmul(tf.transpose(self.x), pos_hid_probs)
-        pos_hid_act = tf.reduce_sum(pos_hid_probs, 0)
+        self.pos_hid_probs = tf.nn.sigmoid(tf.add(tf.matmul(self.x, self.weights), self.hid_biases))
+        pos_associations = tf.matmul(tf.transpose(self.x), self.pos_hid_probs)
+        pos_hid_act = tf.reduce_sum(self.pos_hid_probs, 0)
         pos_vis_act = tf.reduce_sum(self.x, 0)
 
         ### Start negative phase
-        ### Sample the hidden unit states {0,1} using distribution determined by pos_hid_probs
-        pos_hid_sample = pos_hid_probs > tf.random_uniform(tf.shape(pos_hid_probs), 0, 1)
-        pos_hid_sample = tf.to_float(pos_hid_sample)
+        ### Sample the hidden unit states {0,1} using distribution determined by self.pos_hid_probs
+        self.pos_hid_sample = self.pos_hid_probs > tf.random_uniform(tf.shape(self.pos_hid_probs), 0, 1)
+        self.pos_hid_sample = tf.to_float(self.pos_hid_sample)
 
-        self.neg_vis_probs=tf.nn.sigmoid(tf.add(tf.matmul(pos_hid_sample,tf.transpose(self.weights)),self.vis_biases))
+        self.neg_vis_probs=tf.nn.sigmoid(tf.add(tf.matmul(self.pos_hid_sample,tf.transpose(self.weights)),self.vis_biases))
 
         if self.rbm_version == 'Hinton_2006':
             print('Using rbm_verison:  Hinton_2006')
@@ -149,8 +149,8 @@ class RBM(object):
 
             if self.rbm_version == 'Bengio':
                 print('Using rbm_verison:  Bengio')
-                pos_associations = tf.matmul(tf.transpose(self.x), pos_hid_sample)
-                pos_hid_act = tf.reduce_sum(pos_hid_sample, 0)
+                pos_associations = tf.matmul(tf.transpose(self.x), self.pos_hid_sample)
+                pos_hid_act = tf.reduce_sum(self.pos_hid_sample, 0)
             else:
                 print('Using rbm_verison:  Ruslan_new')
 

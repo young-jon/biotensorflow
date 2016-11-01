@@ -57,3 +57,9 @@
 - [ ] model selection code/training pipeline
 - [ ] feature selection 
 - [ ] which high-level api: Keras, TFLearn, TF-Slim, tf.contrib.learn?
+
+
+## Bugs/Best Practices Improvements
+- [ ] all get_reconstruction_images functions need to be updated to allow for different sized number of features
+- [ ] too many repeated functions in classes (save, reconstruction,...). have a base class which all others inherit from
+

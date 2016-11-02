@@ -61,6 +61,5 @@
 
 
 ## Best Practices Improvements
-- [ ] all get_reconstruction_images functions need to be updated to allow for different sized number of features
 - [ ] too many repeated functions in classes (save, reconstruction,...). have a base class which all others inherit from
 

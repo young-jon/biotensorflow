@@ -53,6 +53,7 @@
 	- [x] CNN
 	- [ ] multimodal
 	- [ ] generative
+	- [ ] glorot initialization
 	- [ ] other
 - [ ] model selection code/training pipeline
 - [ ] feature selection 

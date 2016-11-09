@@ -5,8 +5,16 @@ import numpy as np
 
 def read_data_file(file_path):
     '''
-    Function 'read_data_file' is to import data from a csv file.
-    file_path: the path of a csv file
+    This function 'read_data_file' is to import data from a csv file.
+
+    Args:
+    file_path: the path of a csv file which is passed as a string.
+
+    Returns:
+    A numpy matrix
+
+    Example Usage:
+    file = read_data_file('/Users/luc17/Desktop/PDX project/pdx_bimodal_binary_feature_selected.csv')
     '''
     
     ##read data from csv file
@@ -16,13 +24,24 @@ def read_data_file(file_path):
 
 def sep_data_train_test_val(data_features,train_sample_ratio,test_sample_ratio,validation_sample_ratio,data_labels=None):
     '''
-    Function 'sep_data_train_test_val' is to separate the data into train, test and validation datasets based
-    on the ratio of train, test and validation (ex.train_sample_rate = 0.7, test_sample_rate = 0.2, validation_sample_rate = 0.1).
-    data_features: a numpy matrix. The rows should be samples and the columns should be features
-    train_sample_ratio: the ratio of the training samples (a constant between 0 and 1)
-    test_sample_ratio: the ratio of the test samples (a constant between 0 and 1)
-    validation_sample_ratio: the ratio of the validation samples (a constant between 0 and 1)
+    This function 'sep_data_train_test_val' is to separate the data into training, test and validation datasets based
+    on the ratio of training, test and validation (ex.train_sample_rate = 0.7, test_sample_rate = 0.2, validation_sample_rate = 0.1).
+
+    Args:
+    data_features: a numpy matrix. The rows should be samples and the columns should be features.
+    train_sample_ratio: a number between 0 and 1 which represents the ratio of the training samples. The sum of train_sample_ration, test_sample_ratio and validation_sample_ration should be 1. 
+    test_sample_ratio: a number between 0 and 1 which represents the ratio of the test samples.
+    validation_sample_ratio: a number between 0 and 1 which represents the ratio of the validation samples.
     data_labels: a numpy matrix. The rows should be samples and the columns should be labels. If the data_labels matrix is not given, the function will randomly create one.
+
+    Returns:
+    A numpy dictionary containing separated training, test and validation dataset with keys 'train', 'test' and 'validation'.
+
+    Example usage:
+    dataset = sep_data_train_test_val(datafeatures,0.7,0.2,0.1)
+    training_dataset = dataset{'train'}
+    test_dataset = dataset{'test'}
+    validation_dataset = dataset{'validation'}
     '''
     
     if data_labels is None:

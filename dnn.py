@@ -12,20 +12,18 @@ import time
 import csv
 import pandas as pd
 import tensorflow as tf
+from utils import *
 
 
 class DNN(object):
     '''
     A Deep Neural Network (Multilayer Perceptron) implementation using the 
     TensorFlow library. See __main__ for example usage.
-
     Args:
-
     config (dict): file of hyperparameters
     train_dataset (DataSet): Training data in the form of a DataSet object from 
         dataset.py. Labels should be one-hot-vector.
     validation_dataset (DataSet): same as train_dataset
-
     '''
 
     def __init__(self, sess, config, train_dataset, validation_dataset,
@@ -41,12 +39,12 @@ class DNN(object):
         self.cost_function = config['cost_function']
         self.optimizer = config['optimizer']
         self.regularizer = config['regularizer']
+        self.dropout_rate = config['dropout_rate']
         self.learning_rate = config['learning_rate']
         self.training_epochs = config['training_epochs']
         self.batch_size = config['batch_size']
         self.display_step = config['display_step']
         self.save_costs_to_csv = config['save_costs_to_csv']
-
         self._build_graph()
 
     def _build_graph(self):
@@ -78,14 +76,26 @@ class DNN(object):
                 self.biases.append(tf.Variable(tf.random_normal([all_layers[i+1]])))
 
         # CREATE MODEL
-        # create hidden layer 1
-        self.model = []
-        self.model.append(self.activation(tf.add(tf.matmul(self.x, self.weights[0]), self.biases[0])))
-        # create remaining hidden layers
-        for j in range(len(self.hidden_layers))[1:]:
-            self.model.append(self.activation(tf.add(tf.matmul(self.model[j-1], self.weights[j]), self.biases[j])))
-        #create output layer
-        self.model.append(tf.add(tf.matmul(self.model[-1], self.weights[-1]), self.biases[-1])) 
+        ##create model based on the regularizer chosen##
+        if self.regularizer == None:
+            self.model = []
+            self.model.append(self.activation(tf.add(tf.matmul(self.x, self.weights[0]), self.biases[0])))
+            # create remaining hidden layers
+            for j in range(len(self.hidden_layers))[1:]:
+                self.model.append(self.activation(tf.add(tf.matmul(self.model[j-1], self.weights[j]), self.biases[j])))
+            #create output layer
+            self.model.append(tf.add(tf.matmul(self.model[-1], self.weights[-1]), self.biases[-1]))
+
+
+        if self.regularizer == tf.nn.dropout:
+            self.model = []
+            self.model.append(self.regularizer(self.activation(tf.add(tf.matmul(self.x, self.weights[0]), self.biases[0])),self.dropout_rate[0]))
+            # create remaining hidden layers
+            for j in range(len(self.hidden_layers))[1:]:
+                self.model.append(self.regularizer(self.activation(tf.add(tf.matmul(self.model[j-1], self.weights[j]), self.biases[j])),self.dropout_rate[j]))
+            #create output layer
+            self.model.append(tf.add(tf.matmul(self.model[-1], self.weights[-1]), self.biases[-1])) 
+            
 
         # Construct model
         self.logits = self.model[-1]  ### output layer logits
@@ -175,11 +185,9 @@ class DNN(object):
     def get_test_cost_and_accuracy(self, test_dataset):
         '''
         Calculate cost and accuracy for a test dataset.
-
         ARGS:
         test_dataset (DataSet): Testing data in the form of a DataSet object from 
         dataset.py. Labels should be one-hot-vector.
-
         RETURNS:
         Test set accuracy and average test set cost over entire test dataset
         '''
@@ -205,30 +213,48 @@ class DNN(object):
 
 ### EXAMPLE USAGE
 if __name__ == '__main__':
+#if True:
     from dnn import DNN
     import tensorflow as tf
     import numpy as np
     from dataset import DataSet
     from tensorflow.examples.tutorials.mnist import input_data
-
+    
+    #The followings use the mnist data as input
     mnist = input_data.read_data_sets("/tmp/data/", one_hot=True)
     train_dataset = DataSet(mnist.train.images, mnist.train.labels)
     validation_dataset = DataSet(mnist.validation.images, mnist.validation.labels)
     test_dataset = DataSet(mnist.test.images, mnist.test.labels)
-
+    '''
+    ##To import your own data, you need to define the file path, the rate for separating data into train, test and validation dataset
+    file_path_features = '/Users/luc17/Desktop/PDX project/pdx_bimodal_binary_feature_selected.csv'
+    file_path_labels = ''
+    features = read_data_file(file_path = file_path_features)
+    #labels = read_data_file(file_path = file_path_labels)
+    
+    data = sep_data_train_test_val(features,0.7,0.2,0.1)
+    train_dataset = data['train']
+    test_dataset = data['test']
+    validation_dataset = data['validation']
+    '''
+    
+#if True:
     ### SETUP NEURAL NETWORK HYPERPARAMETERS
     config = {
-        'save_path': '/Users/jon/Output/biotensorflow/',
+        #'save_path': '/Users/jon/Output/biotensorflow/',
+        'save_path': '/Users/luc17/Documents/biotensorflow/',
         'hidden_layers': [100,50],
         'activation': tf.nn.relu,
         'cost_function': tf.nn.softmax_cross_entropy_with_logits,
         'optimizer': tf.train.AdamOptimizer,
-        'regularizer': None,
+        'regularizer': tf.nn.dropout,
+        #'regularizer': None,
+        'dropout_rate': [0.5,1],
         'learning_rate': 0.001,
         'training_epochs': 3,
         'batch_size': 100,
         'display_step': 1,
-        'save_costs_to_csv': True
+        'save_costs_to_csv': True,
     }
 
     ### Buid, train, and save model
@@ -252,4 +278,3 @@ if __name__ == '__main__':
     ### save hidden layer values
     # import numpy as np
     # np.savetxt(save_path + 'h1_train.csv', h1, delimiter=",")  ### np.loadtxt('h1_train.csv', delimiter=",")
-

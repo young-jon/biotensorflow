@@ -12,6 +12,7 @@ import time
 import csv
 import pandas as pd
 import tensorflow as tf
+import numpy as np
 
 
 class DNN(object):
@@ -202,6 +203,48 @@ class DNN(object):
         file_path = self.saver.save(self.sess, self.save_path + file_name)
         print("Model saved in file: %s" % file_path)
 
+    def test_model(self, train_dataset, validation_dataset, test_dataset): 
+        ### TESTS TO MAKE SURE THAT COSTS ARE COMPUTED AS EXPECTED USING CURRENT TRAIN_VALIDATION DATASET
+        print("Testing model with default parameters!")
+        ### DEFAULT NEURAL NETWORK HYPERPARAMETERS
+        config = {
+            'save_path': '/Users/jon/Output/biotensorflow/',
+            'hidden_layers': [150,60],
+            'activation': tf.nn.relu,
+            'cost_function': tf.nn.softmax_cross_entropy_with_logits,
+            'optimizer': tf.train.AdamOptimizer,
+            'regularizer': None,
+            'learning_rate': 0.001,
+            'training_epochs': 3,
+            'batch_size': 100,
+            'display_step': 4, #training_epochs + 1, don't want to display anything
+            'save_costs_to_csv': False
+        }
+
+        ### GENERATE RANDOM SEEDS
+        tensorflow_seed = np.array([0, 42, 1234, 1776, 1729])
+        numpy_seed = np.array([1729, 1776, 1234, 42, 0])
+
+        test_costs = [None] * 5 
+
+        for count in range(0,5): 
+            #print(count)
+            tf.set_random_seed(tensorflow_seed[count])
+            np.random.seed(numpy_seed[count])
+
+            with tf.Session() as sess: 
+                #use subprocesses to silent 
+
+                dnn = DNN(sess, config, train_dataset, validation_dataset)
+                dnn.train()
+
+                #evaluate model on a test set
+                c, a = dnn.get_test_cost_and_accuracy(test_dataset)
+                test_costs[count] = c
+
+        print("#####")
+        print("Average cost", sum(test_costs)/5)
+
 
 ### EXAMPLE USAGE
 if __name__ == '__main__':
@@ -238,6 +281,9 @@ if __name__ == '__main__':
         dnn.save_model('model.ckpt')
         #evaluate model on a test set
         c, a = dnn.get_test_cost_and_accuracy(test_dataset)
+
+    ### test_model 
+    dnn.test_model(train_dataset, validation_dataset, test_dataset)    
 
     ### To reload model in same ipython session with same graph defined, run:
     # sess = tf.InteractiveSession()

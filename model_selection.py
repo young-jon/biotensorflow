@@ -10,7 +10,7 @@ import sys
 
 class GridSearch:
     """
-    Class for optimizing TF model structure/parameters with validation data
+    Class for optimizing TF model structure/hyperparameters with validation data
 
     Example Usage:
     # train_dataset = DataSet(...)
@@ -25,15 +25,15 @@ class GridSearch:
 
     fc1_size = [1, 8]
 
-    # Generate "grid" of parameters
+    # Generate "grid" of hyperparameters
     grid = list(itertools.product(conv1_filter_width, conv1_num_feature_maps,
                                   conv2_filter_width, conv2_num_feature_maps,
                                   maxpool2_size, fc1_size))
 
     # Setup model configurations
     model_configs = []
-    for params in grid:
-        c1_fw, c1_k, c2_fw, c2_k, mp2_w, fc1_n = params
+    for hyperparams in grid:
+        c1_fw, c1_k, c2_fw, c2_k, mp2_w, fc1_n = hyperparams
 
         # Create model directory
         model_dir = (base_path + "/saved_models_worker_{0}/{1}/{2}" \

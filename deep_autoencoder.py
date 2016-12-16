@@ -213,8 +213,9 @@ if __name__ == '__main__':
     from utils import read_data_file, sep_data_train_test_val
 
     ### use non-mnist dataset
-    f = read_data_file('/Users/jdy10/Code/python/biotensorflow/data_2668.csv')
-    f = f[:,0:400]
+    f = read_data_file('/Users/jdy10/Code/python/biotensorflow/data_400.csv')
+    # f = f[:,0:400]
+    # np.savetxt("data_400.csv", f, delimiter=",") # save numpy array as .csv
     data = sep_data_train_test_val(f,0.9,0.05,0.05)  # should really use (0.7,0.15,0.15)
     train_dataset = data['train']
     test_dataset = data['test']
@@ -236,8 +237,8 @@ if __name__ == '__main__':
         'optimizer': tf.train.AdamOptimizer,
         #AdadeltaOptimizer,AdagradOptimizer,AdamOptimizer,MomentumOptimizer,RMSPropOptimizer,GradientDescentOptimizer
         'regularizer': None,
-        'learning_rate': 0.01,  
-        'training_epochs': 100,
+        'learning_rate': 0.009,  
+        'training_epochs': 300,
         'batch_size': 100,
         'display_step': 1,
         'save_costs_to_csv': True

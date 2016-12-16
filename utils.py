@@ -38,10 +38,10 @@ def sep_data_train_test_val(data_features,train_sample_ratio,test_sample_ratio,v
     A numpy dictionary containing separated training, test and validation dataset with keys 'train', 'test' and 'validation'.
 
     Example usage:
-    dataset = sep_data_train_test_val(datafeatures,0.7,0.2,0.1)
-    training_dataset = dataset{'train'}
-    test_dataset = dataset{'test'}
-    validation_dataset = dataset{'validation'}
+    dataset = sep_data_train_test_val(data_features,0.7,0.2,0.1)
+    training_dataset = dataset['train']
+    test_dataset = dataset['test']
+    validation_dataset = dataset['validation']
     '''
     
     if data_labels is None:
@@ -77,3 +77,42 @@ def sep_data_train_test_val(data_features,train_sample_ratio,test_sample_ratio,v
 
     data_set = {'train':train,'test':test,'validation':validation}
     return data_set
+
+### IMAGING UTILS
+def get_image_dims(n_input):
+    ''' converts 1-D integer to 2-D representation for plotting as an image
+
+    Args
+    n_input (int):  number of features in the data that you want to plot as an image
+
+    Returns
+    A 2-D tuple (of dimensions) for plotting
+
+    Usage
+    print(get_image_dims(784))
+    # (28, 28)
+    print(get_image_dims(500))
+    # (25, 20)
+
+    '''
+    ### check for perfect square
+    if not (np.sqrt(n_input) - int(np.sqrt(n_input))):
+        dimensions = (int(np.sqrt(n_input)), int(np.sqrt(n_input)))
+    ### if not perfect square
+    else:
+        dim1 =[]
+        dim2=[]
+        mid = int(np.floor(np.sqrt(n_input)))
+        for i in range(mid):
+            if (n_input % (i+1)) == 0:
+                # print(i+1)
+                dim1.append(i+1)
+        for i in range(mid,n_input):
+            if (n_input % (i+1)) == 0:
+                # print(i+1)
+                dim2.append(i+1)
+        dimensions = (min(dim2), max(dim1))
+        if 1 in dimensions:
+            print('prime number of features')
+    return dimensions
+

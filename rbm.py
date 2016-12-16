@@ -8,6 +8,7 @@ import time
 import csv
 import pandas as pd
 import matplotlib.pyplot as plt
+from utils import get_image_dims
 
 # TODO:  implement pseudolikelihood (see scikit, deep learning tutorials)
 # TODO:  other measures of generalization error
@@ -257,21 +258,24 @@ class RBM(object):
         file_path = self.saver.save(self.sess, self.save_path + file_name)
         print("Model saved in file: %s" % file_path)
 
-    def get_reconstruction_images(self):
-        '''Dispays 10 images from validation set and their reconstructions'''
+    def get_reconstruction_images(self, num_images=10, color='magma'):
+        '''dispay 10 images from validation set and their reconstructions'''
         if self.rbm_version == 'Hinton_2006':
             reconstructions = self.neg_vis_probs
         elif self.rbm_version in ['Ruslan_new', 'Bengio']:
             reconstructions = self.neg_vis_sample
-        encode_decode = self.sess.run(reconstructions, feed_dict={self.x: self.validation_dataset.features[:10]})
+        dims = get_image_dims(self.n_input)
+        encode_decode = self.sess.run(reconstructions, 
+                            feed_dict={self.x: self.validation_dataset.features[:num_images]})
         ### Compare original images with their reconstructions
-        f, a = plt.subplots(2, 10, figsize=(10, 2))
-        for i in range(10):
-            a[0][i].imshow(np.reshape(self.validation_dataset.features[i], (28, 28)))
-            a[1][i].imshow(np.reshape(encode_decode[i], (28, 28)))
+        f, a = plt.subplots(2, num_images, figsize=(40, 3))
+        for i in range(num_images):
+            a[0][i].imshow(np.reshape(self.validation_dataset.features[i], dims), cmap=color)
+            a[1][i].imshow(np.reshape(encode_decode[i], dims), cmap=color)
         f.show()
         plt.draw()
         plt.waitforbuttonpress()
+        return encode_decode
 
 
 ### EXAMPLE USAGE
@@ -288,7 +292,7 @@ if __name__ == '__main__':
 
     ### SETUP NEURAL NETWORK HYPERPARAMETERS (see class RBM docstring)
     config = {
-        'save_path': '/Users/jon/Output/biotensorflow/',
+        'save_path': '/Users/jdy10/Output/biotensorflow/',
         'rbm_hidden_layer': 512,
         'regularizer': None,
         'learning_rate': 0.05, # Learning rate for weights and biases. default 0.1

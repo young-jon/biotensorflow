@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tensorflow.examples.tutorials.mnist import input_data
 from dataset import DataSet
+from utils import get_image_dims
 
 '''
 A Deep Autoencoder implementation using the TensorFlow library.
@@ -23,7 +24,7 @@ train_dataset = DataSet(mnist.train.images, mnist.train.labels)
 validation_dataset = DataSet(mnist.validation.images, mnist.validation.labels)
 
 ### SETUP NEURAL NETWORK HYPERPARAMETERS
-save_path = "/Users/jon/Output/biotensorflow/"
+save_path = "/Users/jdy10/Output/biotensorflow/"
 save_model_filename = 'model.ckpt'
 encoder_hidden_layers=[256, 128]
 activation=tf.nn.sigmoid
@@ -162,13 +163,16 @@ with tf.Session() as sess:
     ### GENERATE FIGURE OF RECONSTRUCTIONS
     if get_reconstruction_images:
         '''dispay 10 images from validation set and their reconstructions'''
+        num_images = 10
+        color = 'magma'
+        dims = get_image_dims(n_input)
         encode_decode = sess.run(output_layer_activation(logits), 
-                            feed_dict={x: validation_dataset.features[:10]})
+                            feed_dict={x: validation_dataset.features[:num_images]})
         ### Compare original images with their reconstructions
-        f, a = plt.subplots(2, 10, figsize=(10, 2))
-        for i in range(10):
-            a[0][i].imshow(np.reshape(validation_dataset.features[i], (28, 28)))
-            a[1][i].imshow(np.reshape(encode_decode[i], (28, 28)))
+        f, a = plt.subplots(2, num_images, figsize=(40, 3))
+        for i in range(num_images):
+            a[0][i].imshow(np.reshape(validation_dataset.features[i], dims), cmap=color)
+            a[1][i].imshow(np.reshape(encode_decode[i], dims), cmap=color)
         f.show()
         plt.draw()
         plt.waitforbuttonpress()

@@ -43,8 +43,10 @@ with tf.Session() as sess:
 ### DA FINETUNING
 ### change/add config hyperparameters
 config['activation'] = tf.nn.sigmoid
+#tf.nn.sigmoid, tf.nn.tanh, tf.nn.relu, tf.nn.elu
 config['cost_function'] = tf.nn.sigmoid_cross_entropy_with_logits
 config['optimizer'] = tf.train.AdamOptimizer
+#AdadeltaOptimizer,AdagradOptimizer,AdamOptimizer,MomentumOptimizer,RMSPropOptimizer,GradientDescentOptimizer
 config['learning_rate'] = 0.01
 
 print('Finetuning...')

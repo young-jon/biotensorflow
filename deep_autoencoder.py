@@ -13,6 +13,7 @@ import tensorflow as tf
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+from utils import get_image_dims
 
 class DA(object):
     '''
@@ -186,18 +187,20 @@ class DA(object):
         file_path = self.saver.save(self.sess, self.save_path + file_name)
         print("Model saved in file: %s" % file_path)
 
-    def get_reconstruction_images(self, output_layer_activation):
+    def get_reconstruction_images(self, output_layer_activation, num_images=10, color='magma'):
         '''dispay 10 images from validation set and their reconstructions'''
+        dims = get_image_dims(self.n_input)
         encode_decode = self.sess.run(output_layer_activation(self.logits), 
-                            feed_dict={self.x: self.validation_dataset.features[:10]})
+                            feed_dict={self.x: self.validation_dataset.features[:num_images]})
         ### Compare original images with their reconstructions
-        f, a = plt.subplots(2, 10, figsize=(10, 2))
-        for i in range(10):
-            a[0][i].imshow(np.reshape(self.validation_dataset.features[i], (28, 28)))
-            a[1][i].imshow(np.reshape(encode_decode[i], (28, 28)))
+        f, a = plt.subplots(2, num_images, figsize=(40, 3))
+        for i in range(num_images):
+            a[0][i].imshow(np.reshape(self.validation_dataset.features[i], dims), cmap=color)
+            a[1][i].imshow(np.reshape(encode_decode[i], dims), cmap=color)
         f.show()
         plt.draw()
         plt.waitforbuttonpress()
+        return encode_decode
 
 
 
@@ -207,23 +210,35 @@ if __name__ == '__main__':
     import tensorflow as tf
     import numpy as np
     from dataset import DataSet
-    from tensorflow.examples.tutorials.mnist import input_data
-    
-    mnist = input_data.read_data_sets("/tmp/data/", one_hot=True)
-    train_dataset = DataSet(mnist.train.images, mnist.train.labels)
-    validation_dataset = DataSet(mnist.validation.images, mnist.validation.labels)
+    from utils import read_data_file, sep_data_train_test_val
 
-    ### SETUP NEURAL NETWORK HYPERPARAMETERS
+    ### use non-mnist dataset
+    f = read_data_file('/Users/jdy10/Code/python/biotensorflow/data_2668.csv')
+    f = f[:,0:400]
+    data = sep_data_train_test_val(f,0.9,0.05,0.05)  # should really use (0.7,0.15,0.15)
+    train_dataset = data['train']
+    test_dataset = data['test']
+    validation_dataset = data['validation']
+
+    ### uncomment below to use MNIST
+    # from tensorflow.examples.tutorials.mnist import input_data
+    # mnist = input_data.read_data_sets("/tmp/data/", one_hot=True)
+    # train_dataset = DataSet(mnist.train.images, mnist.train.labels)
+    # validation_dataset = DataSet(mnist.validation.images, mnist.validation.labels)
+
+### SETUP NEURAL NETWORK HYPERPARAMETERS
     config = {
-        'save_path': '/Users/jon/Output/biotensorflow/',
-        'encoder_hidden_layers': [256,128],
+        'save_path': '/Users/jdy10/Output/biotensorflow/',
+        'encoder_hidden_layers': [100],
         'activation': tf.nn.sigmoid,
+        #tf.nn.sigmoid, tf.nn.tanh, tf.nn.relu, tf.nn.elu
         'cost_function': tf.nn.sigmoid_cross_entropy_with_logits,
-        'optimizer': tf.train.RMSPropOptimizer,
+        'optimizer': tf.train.AdamOptimizer,
+        #AdadeltaOptimizer,AdagradOptimizer,AdamOptimizer,MomentumOptimizer,RMSPropOptimizer,GradientDescentOptimizer
         'regularizer': None,
-        'learning_rate': 0.01,
-        'training_epochs': 20,
-        'batch_size': 256,
+        'learning_rate': 0.01,  
+        'training_epochs': 100,
+        'batch_size': 100,
         'display_step': 1,
         'save_costs_to_csv': True
     }
@@ -233,7 +248,7 @@ if __name__ == '__main__':
         da = DA(sess, config, train_dataset, validation_dataset)  # init config and build graph
         da.train() 
         da.save_model('model.ckpt')
-        da.get_reconstruction_images(tf.nn.sigmoid) # argument here is the output layer activation
+        rec=da.get_reconstruction_images(tf.nn.sigmoid, num_images=15) # argument here is the output layer activation
         # function for generating images of the reconstructions. This should match the activation 
         # used in the cost_function. Use tf.identity to output affine transformation without an 
         # activation function.  

@@ -8,6 +8,7 @@ import numpy as np
 from dataset import DataSet
 from deep_autoencoder import DA
 from rbm import RBM
+from utils import get_image_dims
 from tensorflow.examples.tutorials.mnist import input_data
 
 # TODO:  remove dummy labels in SA.train after modify DataSet to accept unsupervised data
@@ -153,6 +154,7 @@ if __name__ == '__main__':
     import tensorflow as tf
     import numpy as np
     from dataset import DataSet
+    from utils import read_data_file, sep_data_train_test_val
     from tensorflow.examples.tutorials.mnist import input_data
     
     mnist = input_data.read_data_sets("/tmp/data/", one_hot=True)
@@ -161,7 +163,7 @@ if __name__ == '__main__':
 
     ### SETUP NEURAL NETWORK HYPERPARAMETERS
     config = {
-        'save_path': '/Users/jon/Output/biotensorflow/',
+        'save_path': '/Users/jdy10/Output/biotensorflow/',
         'encoder_hidden_layers': [256,128],
         'regularizer': None,
         'learning_rate': 0.05, # Learning rate for weights and biases. default 0.1

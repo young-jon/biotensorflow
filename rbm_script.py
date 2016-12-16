@@ -8,13 +8,14 @@ import time
 import csv
 import pandas as pd
 import matplotlib.pyplot as plt
+from utils import get_image_dims
 
 # TODO:  implement pseudolikelihood (see scikit, deep learning tutorials)
 # TODO:  other measures of generalization error
 # TODO:  automatic differentiation version
 
 ### SETUP NEURAL NETWORK HYPERPARAMETERS
-save_path= '/Users/jon/Output/biotensorflow/'
+save_path= '/Users/jdy10/Output/biotensorflow/'
 save_model_filename = 'model.ckpt'
 rbm_hidden_layer= 512
 regularizer= None
@@ -170,13 +171,17 @@ with tf.Session() as sess:
 
     if get_reconstruction_images:
         '''dispay 10 images from validation set and their reconstructions'''
-        encode_decode = sess.run(neg_vis_probs, feed_dict={x: validation_dataset.features[:10]})
+        num_images = 10
+        color = 'magma'
+        dims = get_image_dims(n_input)
+        encode_decode = sess.run(neg_vis_probs, feed_dict={x: validation_dataset.features[:num_images]})
         ### Compare original images with their reconstructions
-        f, a = plt.subplots(2, 10, figsize=(10, 2))
-        for i in range(10):
-            a[0][i].imshow(np.reshape(validation_dataset.features[i], (28, 28)))
-            a[1][i].imshow(np.reshape(encode_decode[i], (28, 28)))
+        f, a = plt.subplots(2, num_images, figsize=(40, 3))
+        for i in range(num_images):
+            a[0][i].imshow(np.reshape(validation_dataset.features[i], dims), cmap=color)
+            a[1][i].imshow(np.reshape(encode_decode[i], dims), cmap=color)
         f.show()
         plt.draw()
         plt.waitforbuttonpress()
+
 

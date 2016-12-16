@@ -80,14 +80,42 @@ class DNN(object):
 
         # CREATE MODEL
         # create hidden layer 1
-        self.model = []
-        self.model.append(self.activation(tf.add(tf.matmul(self.x, self.weights[0]), self.biases[0])))
-        # create remaining hidden layers
-        for j in range(len(self.hidden_layers))[1:]:
-            self.model.append(self.activation(tf.add(tf.matmul(self.model[j-1], self.weights[j]), self.biases[j])))
-        #create output layer
-        self.model.append(tf.add(tf.matmul(self.model[-1], self.weights[-1]), self.biases[-1])) 
 
+        if self.regularizer[0] == tf.nn.dropout:
+            self.model = []
+            self.model.append(self.regularizer[0](self.activation(tf.add(tf.matmul(self.x, self.weights[0]), self.biases[0])),self.regularizer[1][0]))
+            # create remaining hidden layers
+            for j in range(len(self.hidden_layers))[1:]:
+                self.model.append(self.regularizer[0](self.activation(tf.add(tf.matmul(self.model[j-1], self.weights[j]), self.biases[j])),self.regularizer[1][j]))
+            #create output layer
+            self.model.append(tf.add(tf.matmul(self.model[-1], self.weights[-1]), self.biases[-1]))
+
+
+        elif self.regularizer[0] == tf.nn.batch_normalization:
+            self.model = []
+            self.model.append(self.activation(tf.add(tf.matmul(self.x, self.weights[0]), self.biases[0])))
+            # create remaining hidden layers
+            for j in range(len(self.hidden_layers))[1:]:
+                z = tf.add(tf.matmul(self.model[j-1], self.weights[j]), self.biases[j])
+                batch_mean, batch_var = tf.nn.moments(z,[0])
+                scale = tf.Variable(tf.ones([self.hidden_layers[j]]))
+                beta = tf.Variable(tf.zeros([self.hidden_layers[j]]))
+                BN = self.regularizer[0](z,batch_mean,batch_var,beta,scale,self.regularizer[1])
+                self.model.append(self.activation(BN))
+            #create output layer
+            self.model.append(tf.add(tf.matmul(self.model[-1], self.weights[-1]), self.biases[-1]))
+
+        else:
+            self.model = []
+            self.model.append(self.activation(tf.add(tf.matmul(self.x, self.weights[0]), self.biases[0])))
+            # create remaining hidden layers
+            for j in range(len(self.hidden_layers))[1:]:
+                self.model.append(self.activation(tf.add(tf.matmul(self.model[j-1], self.weights[j]), self.biases[j])))
+            #create output layer
+            self.model.append(tf.add(tf.matmul(self.model[-1], self.weights[-1]), self.biases[-1]))
+            
+
+ 
         # Construct model
         self.logits = self.model[-1]  ### output layer logits
 
@@ -213,7 +241,9 @@ class DNN(object):
             'activation': tf.nn.relu,
             'cost_function': tf.nn.softmax_cross_entropy_with_logits,
             'optimizer': tf.train.AdamOptimizer,
-            'regularizer': None,
+            #'regularizer': [None],
+            'regularizer':[tf.nn.batch_normalization,1e-5],#batch_normalization_epsilon
+            #'regularizer': [tf.nn.dropout,[0.6,1]],#dropout_rate
             'learning_rate': 0.001,
             'training_epochs': 3,
             'batch_size': 100,
@@ -266,7 +296,9 @@ if __name__ == '__main__':
         'activation': tf.nn.relu,
         'cost_function': tf.nn.softmax_cross_entropy_with_logits,
         'optimizer': tf.train.AdamOptimizer,
-        'regularizer': None,
+        #'regularizer': [None],
+        'regularizer':[tf.nn.batch_normalization,1e-5],#batch_normalization_epsilon
+        #'regularizer': [tf.nn.dropout,[0.7,1]],#dropout_rate
         'learning_rate': 0.001,
         'training_epochs': 3,
         'batch_size': 100,
@@ -298,4 +330,3 @@ if __name__ == '__main__':
     ### save hidden layer values
     # import numpy as np
     # np.savetxt(save_path + 'h1_train.csv', h1, delimiter=",")  ### np.loadtxt('h1_train.csv', delimiter=",")
-

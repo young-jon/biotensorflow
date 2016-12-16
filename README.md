@@ -58,3 +58,7 @@ with tf.Session() as sess:
 ```
 
 For more examples and documentation, see pretrain.py, rbm.py, and deep_autoencoder.py.
+
+### Practical recommendations for training autoencoder with binary gene expression data
+-use AdamOptimizer and xavier initialization. 
+(remember reconstruction error issues with relu)

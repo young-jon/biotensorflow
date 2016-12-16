@@ -12,10 +12,10 @@
 
 ### biotensorflow (MOST IMPORTANT)
 - [ ] **1.** *(@lujia)*  user supplied data
-	- [ ] **1a.** (@mike) create small *binary* valued prototyping dataset (~5000 x 500 (samples x features)). Ideally from one of the projects in the lab. for example, gene expression dataset.
+	- [x] **1a.** (@mike, lujia, jon) create small *binary* valued prototyping dataset (~5000 x 500 (samples x features)). Ideally from one of the projects in the lab. for example, gene expression dataset.
 	- [ ] **1b.** (@mike) create small *real* valued prototyping dataset similar to above. Ideally from one of the projects in the lab.
 	- [ ] **1c.** describe requirements for data (ie., data format, etc.). add this to the function in 1d.
-	- [ ] **1d.** write function to create train, validation, and test sets from a single dataset and function to utils.py
+	- [x] **1d.** write function to create train, validation, and test sets from a single dataset and function to utils.py
 - [x] **2.** modify dnn.py to save results
 	- [x] **2a.** model 
 	- [x] **2b.** hidden layers
@@ -27,9 +27,9 @@
 	- [ ] **5b.** run dnn.py on multiple gpus
 - [ ] **6.** (@lujia) add different types of regularization to dnn.py
 	- [ ] **6a.** sparse
-	- [ ] **6b.** dropout
+	- [x] **6b.** dropout
 	- [ ] **6c.** denoising
-	- [ ] **6d.** batch normalization
+	- [x] **6d.** batch normalization
 - [x] **7.** (@mike) add code to dnn.py to decrease learning rate as training progresses (learning rate adaptation) Note: See 8.
 - [x] **8.** (@mike) add momentum to dnn.py Note: Momentum and/or learning rate adaptation already exists within the optimizers for tf.train. There exist optimizers that employ Adelta, Adagrad, adaptive moment estimation (Adam), RMSProp, Momentum, etc. These are described on pages 306-309 of the Deep Learning book. If these methods are not desired, there is also a GradientDescentOptimizer which by default uses a constant learning rate, but can be fed learning rate as a tensor, allowing for custom learning rate adaptation methods. 
 - [ ] **9.** (@mike) testing (given a random seed, tests for making sure weights/outputs are computed as expected)
@@ -53,9 +53,9 @@
 	- [x] CNN
 	- [ ] multimodal
 	- [ ] generative
-	- [ ] glorot initialization
+	- [ ] xavier initialization
 	- [ ] other
-- [ ] model selection code/training pipeline
+- [x] model selection code/training pipeline
 - [ ] feature selection 
 - [ ] which high-level api: Keras, TFLearn, TF-Slim, tf.contrib.learn?
 

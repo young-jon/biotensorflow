@@ -1,6 +1,6 @@
 # biotensorflow
 
-Code repository with deep learning algorithms developed for biological applications---developed by members of the Lu lab and written using Python 2.7 and TensorFlow. In general, all code should be tested before pushing to the repository.
+Code repository with deep learning algorithms developed for biological applications---written using Python 2.7 and TensorFlow and developed by members of the Lu lab. In general, all code should be thoroughly tested before pushing to the repository.
 
 How to run a Stack Restricted Boltzmann Machine - Deep Autoencoder (SRBM-DA).  An SRBM-DA is also known as a Deep Belief Network (DBN):
 

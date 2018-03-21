@@ -59,6 +59,28 @@ with tf.Session() as sess:
 
 For more examples and documentation, see pretrain.py, rbm.py, and deep_autoencoder.py.
 
+### RBM Class
+The RBM class (in rbm.py) includes 3 versions of a Restricted Boltzmann Machine. They are 
+called 'Hinton_2006', 'Ruslan_new', and 'Bengio'. You designate the version 
+with an argument in config. These 3 versions differ based on whether 
+sampling or probabilities are used for different calculations in Contrastive 
+Divergence and the resulting weight and biases updates. The reconstructions 
+in 'Hinton_2006' are probabilities, while the reconstructions in 
+'Ruslan_new' and 'Bengio' are binary (i.e. sampled from the reconstruction 
+probability distribution).
+
+'Hinton_2006' is based on code from Hinton and Salakhutdinov's 2006 Science 
+paper (http://www.cs.toronto.edu/~hinton/code/rbm.m). 'Ruslan_new' is based 
+on code from http://www.cs.toronto.edu/~rsalakhu/code_DBM/rbm.m. 'Bengio' is 
+based on pseudocode from page 33 of 
+http://www.iro.umontreal.ca/~bengioy/papers/ftml.pdf
+
+The RBM class expects your data to be binary or continuous between 0 and 1.
+If your data is continuous (gaussian) and outside the range [0,1], remove 
+the sigmoids (tf.nn.sigmoid) from contrastive divergence. 
+
 ### Practical recommendations for training autoencoder with binary gene expression data
 -use AdamOptimizer and xavier initialization. 
 (remember reconstruction error issues with relu)
+
+

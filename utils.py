@@ -1,6 +1,10 @@
 from numpy import genfromtxt
 from dataset import DataSet
 import numpy as np
+import tensorflow as tf
+import itertools
+import daft
+import matplotlib.pyplot as plt
 
 
 def read_data_file(file_path):
@@ -116,3 +120,148 @@ def get_image_dims(n_input):
             print('prime number of features')
     return dimensions
 
+
+### INITIALIZATION
+
+### Goodfellow book recommends treating weight initialization as a hyperparameter.
+### E.g. could try xavier_init, xavier_init2, tf.truncated_normal_initializer(stddev=stddev)) stdev=0.02 or other,
+### tf.truncated_normal(shape, stddev=0.1). truncated_normal_initializer used by Improved_gan and Info_Gan code.
+### For biases could use tf.constant(0.1, shape=shape) --- from tensorflow tutorial, zeros, or random_normal
+def xavier_init(size):
+    print('Using Xavier initialization')
+    in_dim = size[0]
+    xavier_stddev = 1. / tf.sqrt(in_dim / 2.)
+    return tf.random_normal(shape=size, stddev=xavier_stddev)
+
+def xavier_init2(fan_in, fan_out, constant = 1):
+    low = -constant * np.sqrt(6.0 / (fan_in + fan_out))
+    high = constant * np.sqrt(6.0 / (fan_in + fan_out))
+    return tf.random_uniform((fan_in, fan_out),
+                             minval = low, maxval = high,
+                             dtype = tf.float32)
+
+
+
+### OBJECTIVE FUNCTIONS
+def rmse(logits, labels):
+    return tf.reduce_mean(tf.pow(labels - logits, 2))
+
+
+
+
+### VISUALIZE SIM DATA/WEIGHTS AS GRAPHS
+### DRAW GRAPH ###
+def plot_hierarchy(all_matrices, arch, asp=1, nu=0.4, gu=4):
+    '''
+    arch: list of hidden layers and DEGs
+    all_matrices: list of numpy ndarray matrices for arch above
+    '''
+    pgm = daft.PGM([np.max(arch),len(arch)], origin=[.5, .5], node_unit=nu, grid_unit=gu,
+            directed=True)
+    # pgm = daft.PGM([arch[-1]+1,len(arch)+1]) #bigger
+    # Add nodes to plot
+    i=1
+    for yi, layer in enumerate(arch):
+        for xi in range(layer):
+            pgm.add_node(daft.Node(str(i), "", xi+ ((np.max(arch)-layer)/2) +1, yi+1, aspect=asp)) #weird code to center layers
+            #use aspect to shrink or stretch nodes. can maybe get up to 300 visible nodes on a screen using aspect = 10
+            #The aspect ratio width/height
+            # print i, xi+1, yi +1
+            i+=1
+    # Enumerate all edges in Daft's required syntax 
+    # (i.e. str((4,7)) represents edge from node 4 to node 7)
+    # all edges where assigned to a number (increasing starting at 1) in the previous step in order to identify them in 
+    # this step. this is why we have to use i_buffer and j_buffer. because all matrices start numbering at rows and col at 0.
+    all_edges=[]
+    i_buffer = 0
+    j_buffer = arch[0]
+    for mi, matrix in enumerate(all_matrices):
+        for i, row in enumerate(matrix):
+            for j, possible_edge in enumerate(row):
+                if possible_edge == 1:
+                    all_edges.append((i+i_buffer+1,j+j_buffer+1))
+        i_buffer += arch[mi]  #or j_buffer
+        j_buffer += arch[mi+1]
+    # Add edges to graph
+    for e in all_edges:
+        pgm.add_edge(str(e[0]), str(e[1]))
+    # Display and save image
+    pgm.render()
+    # pgm.figure.savefig(file_name)
+    # pgm.figure.savefig(file_name, dpi=200)
+    # plt.show()
+
+### DRAW SGA GRAPH ###
+def plot_sga_loc(bin_sga_edge_matrix, arch, num_SGAs, asp=1, nu=0.4):
+    SGA_graph_arch = [num_SGAs]+arch[:-1]
+    pgm = daft.PGM([np.max(SGA_graph_arch),len(SGA_graph_arch)], origin=[.5, .5], node_unit=nu, grid_unit=8,
+            directed=True)
+
+    # Add nodes to plot for SGA graph
+    i=1 
+    for yi, layer in enumerate(SGA_graph_arch):
+        for xi in range(layer):
+            pgm.add_node(daft.Node(str(i), "", xi+ ((np.max(SGA_graph_arch)-layer)/2) +1, yi+1, aspect=asp)) #weird code to center layers
+            #use aspect to shrink or stretch nodes. can maybe get up to 300 visible nodes on a screen using aspect = 10
+            #The aspect ratio width/height
+            # print i, xi+1, yi+1
+            i+=1
+
+    ### ADD SGA EDGES
+    all_edges=[]
+
+    j_buffer = SGA_graph_arch[0]
+    for i, row in enumerate(bin_sga_edge_matrix):
+        for j, possible_edge in enumerate(row):
+            if possible_edge == 1:
+                all_edges.append((i+1,j+j_buffer+1))
+
+    # Add edges to graph
+    for e in all_edges:
+        pgm.add_edge(str(e[0]), str(e[1]))
+
+    pgm.render()
+
+
+
+def forward_prop(sga,w,b,activation,output_activation):
+    '''forward propagation through a RINN. returns output activations. This assumes output is binary 
+    (ie using sigmoid output function).
+    sga = (numpy ndarray) input vector
+    w = list of  weight matrices (each matrix is numpy ndarray) (8 hidden layer network)
+    b = list of bias vectors (each vector is numpy ndarray)
+    activation = activation function for hidden layers (a python function)
+    output_activation = activation function for output layer (e.g. sigmoid -- for binary, or identity -- for regression)
+    '''
+    # from scipy.special import expit  #sigmoid/logistic function
+    
+    da = np.asarray(sga)     
+    h1 = activation(np.dot(da, w[0]) + b[0])
+    h2 = activation(np.dot(np.concatenate((h1, da)), w[1]) + b[1])
+    h3 = activation(np.dot(np.concatenate((h2, da)), w[2]) + b[2])
+    h4 = activation(np.dot(np.concatenate((h3, da)), w[3]) + b[3])
+    h5 = activation(np.dot(np.concatenate((h4, da)), w[4]) + b[4])
+    h6 = activation(np.dot(np.concatenate((h5, da)), w[5]) + b[5])
+    h7 = activation(np.dot(np.concatenate((h6, da)), w[6]) + b[6])
+    h8 = activation(np.dot(np.concatenate((h7, da)), w[7]) + b[7])
+    deg = output_activation(np.dot(h8, w[8]) + b[8])
+
+    return deg
+
+def softplus(x):
+    return np.log(1.0 + np.exp(x))
+
+def nprelu(x):
+    return x * (x > 0)
+
+
+def get_sparsity(weights, threshold): #weights is list of tensorflow variables 
+    all_matrices = []
+    for i in weights:
+        all_matrices.append(np.where(np.abs(i.eval()) > threshold, 1, 0))
+    active_edges = 0
+    possible_edges = 0
+    for j in all_matrices:
+        active_edges += np.sum(j)
+        possible_edges += (j.shape[0]*j.shape[1])
+    return active_edges, active_edges/possible_edges
